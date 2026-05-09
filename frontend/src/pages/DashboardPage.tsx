@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getWithdrawals, getFuelClaims } from '../lib/api';
-import { TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, FileText, Fuel, Wallet } from 'lucide-react';
+import { TrendingUp, Clock, CheckCircle, XCircle, AlertCircle, Fuel, Wallet } from 'lucide-react';
 
 import DriverDashboard from '../components/dashboard/DriverDashboard';
 import ManagerDashboard from '../components/dashboard/ManagerDashboard';
@@ -17,50 +17,48 @@ interface Stats {
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'driver' | 'manager' | 'finance'>('overview');
 
   // Role-based routing for non-admins
   if (user?.role === 'Driver') return <DriverDashboard />;
   if (user?.role === 'Manager') return <ManagerDashboard />;
   if (user?.role === 'Finance') return <FinanceDashboard />;
 
-  // Admin sees the multi-view dashboard
+  // Admin sees the unified "Super Dashboard"
   return (
-    <div className="space-y-6">
-      {/* Admin Tab Switcher */}
-      <div className="flex flex-wrap items-center gap-2 bg-slate-900/50 p-1.5 rounded-2xl border border-slate-700/50 w-fit">
-        {[
-          { id: 'overview', label: 'ภาพรวมระบบ', icon: TrendingUp },
-          { id: 'driver', label: 'มุมมอง Driver', icon: Fuel },
-          { id: 'manager', label: 'มุมมอง Manager', icon: Clock },
-          { id: 'finance', label: 'มุมมอง Finance', icon: Wallet },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-              activeTab === tab.id
-                ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
+    <div className="space-y-10 animate-fadeIn">
+      {/* 1. Header & Stats */}
+      <AdminOverview user={user} />
+
+      {/* 2. Management & Financial Section (Manager/Finance View) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-1.5 h-6 bg-primary-500 rounded-full" />
+            <h2 className="text-xl font-bold text-white">การจัดการและอนุมัติ (Manager/Finance)</h2>
+          </div>
+          <ManagerDashboard />
+        </div>
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+            <h2 className="text-xl font-bold text-white">มุมมองการจ่ายเงิน (Finance View)</h2>
+          </div>
+          <FinanceDashboard />
+        </div>
       </div>
 
-      <div className="animate-fadeIn">
-        {activeTab === 'overview' && <AdminOverview user={user} />}
-        {activeTab === 'driver' && <DriverDashboard />}
-        {activeTab === 'manager' && <ManagerDashboard />}
-        {activeTab === 'finance' && <FinanceDashboard />}
+      {/* 3. Operational Section (Driver View) */}
+      <div className="space-y-6">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
+          <h2 className="text-xl font-bold text-white">มุมมองการปฏิบัติงาน (Driver View)</h2>
+        </div>
+        <DriverDashboard viewMode="all" />
       </div>
     </div>
   );
 }
 
-// Extract Admin Overview to its own component for cleaner code
 function AdminOverview({ user }: { user: any }) {
   const [stats, setStats] = useState<Stats>({
     totalWithdrawalAmount: 0,
@@ -151,44 +149,33 @@ function AdminOverview({ user }: { user: any }) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card p-8">
-          <h2 className="text-xl font-bold text-white mb-8">สรุปสถานะการอนุมัติ</h2>
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center"><CheckCircle className="w-5 h-5 text-emerald-400" /></div>
-                <div><p className="text-sm font-bold text-emerald-400">อนุมัติสำเร็จ</p></div>
-              </div>
-              <span className="text-2xl font-bold text-white">{stats.successCount}</span>
+      <div className="card p-8">
+        <h2 className="text-xl font-bold text-white mb-8">สรุปสถานะการอนุมัติทั้งหมด</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="flex items-center justify-between p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center"><CheckCircle className="w-5 h-5 text-emerald-400" /></div>
+              <div><p className="text-sm font-bold text-emerald-400">อนุมัติสำเร็จ</p></div>
             </div>
-            <div className="flex items-center justify-between p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center"><Clock className="w-5 h-5 text-amber-400" /></div>
-                <div><p className="text-sm font-bold text-amber-400">รอดำเนินการ</p></div>
-              </div>
-              <span className="text-2xl font-bold text-white">{stats.pendingApprovals}</span>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-red-500/5 border border-red-500/10 rounded-2xl">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center"><XCircle className="w-5 h-5 text-red-400" /></div>
-                <div><p className="text-sm font-bold text-red-400">ถูกปฏิเสธ</p></div>
-              </div>
-              <span className="text-2xl font-bold text-white">{stats.rejectedCount}</span>
-            </div>
+            <span className="text-2xl font-bold text-white">{stats.successCount}</span>
           </div>
-        </div>
-        <div className="card p-8 bg-gradient-to-br from-primary-600/10 to-transparent border-primary-500/20 relative overflow-hidden group">
-          <h2 className="text-xl font-bold text-white mb-2">ข้อมูลเชิงลึกระบบเบิกจ่าย</h2>
-          <p className="text-slate-400 text-sm mb-8 leading-relaxed">สถิติการใช้งานและการอนุมัติรายการค่าน้ำมันรถและเงินทดลองจ่ายภายในองค์กร อัปเดตล่าสุด ณ วันนี้</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50"><p className="text-xs text-slate-500 mb-1 font-medium">อัตราการอนุมัติ</p><p className="text-2xl font-bold text-white">92.4%</p></div>
-            <div className="p-4 bg-slate-800/50 rounded-2xl border border-slate-700/50"><p className="text-xs text-slate-500 mb-1 font-medium">ความรวดเร็วเฉลี่ย</p><p className="text-2xl font-bold text-white">2.4 ชม.</p></div>
+          <div className="flex items-center justify-between p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center"><Clock className="w-5 h-5 text-amber-400" /></div>
+              <div><p className="text-sm font-bold text-amber-400">รอดำเนินการ</p></div>
+            </div>
+            <span className="text-2xl font-bold text-white">{stats.pendingApprovals}</span>
           </div>
-          <button className="w-full mt-8 btn-primary justify-center gap-2 group-hover:shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] transition-all">ดูรายงานละเอียด <FileText className="w-4 h-4" /></button>
-          <Fuel className="absolute -right-8 -bottom-8 w-40 h-40 text-primary-500/5 rotate-12" />
+          <div className="flex items-center justify-between p-4 bg-red-500/5 border border-red-500/10 rounded-2xl">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center"><XCircle className="w-5 h-5 text-red-400" /></div>
+              <div><p className="text-sm font-bold text-red-400">ถูกปฏิเสธ</p></div>
+            </div>
+            <span className="text-2xl font-bold text-white">{stats.rejectedCount}</span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+

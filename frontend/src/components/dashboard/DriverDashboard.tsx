@@ -4,9 +4,13 @@ import { getShipments, getWithdrawals, getFuelClaims } from '../../lib/api';
 import { Truck, MapPin, Navigation, Banknote, Fuel, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function DriverDashboard() {
-  const { user } = useAuth();
-  const [activeShipment, setActiveShipment] = useState<any>(null);
+interface DriverDashboardProps {
+  viewMode?: 'personal' | 'all';
+}
+
+export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboardProps) {
+  const { user: currentUser } = useAuth();
+  const [activeShipments, setActiveShipments] = useState<any[]>([]);
   const [recentItems, setRecentItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,30 +23,45 @@ export default function DriverDashboard() {
           getFuelClaims()
         ]);
 
-        // Get current active shipment
-        const active = shipmentsRes.data.find((s: any) => s.status === 'Active');
-        setActiveShipment(active || null);
+        // In 'all' mode, we take everything. In 'personal', API already filters or we filter here if needed.
+        // The current API returns all for Admin/Manager anyway.
+        
+        let shipments = shipmentsRes.data;
+        let withdrawals = withdrawalsRes.data;
+        let claims = claimsRes.data;
+
+        if (viewMode === 'personal') {
+          shipments = shipments.filter((s: any) => s.driverId === currentUser?.userId);
+          withdrawals = withdrawals.filter((w: any) => w.shipment?.driverId === currentUser?.userId);
+          claims = claims.filter((c: any) => c.shipment?.driverId === currentUser?.userId);
+        }
+
+        // Get active shipments
+        const active = shipments.filter((s: any) => s.status === 'Active');
+        setActiveShipments(active);
 
         // Combine withdrawals and claims for recent items
-        const withdrawals = withdrawalsRes.data.map((w: any) => ({
+        const wItems = withdrawals.map((w: any) => ({
           ...w,
           type: 'Withdrawal',
           title: 'เบิกเงิน',
+          driverName: w.shipment?.driver?.fullName || 'N/A',
           date: new Date(w.createdAt),
           amountDisplay: `฿${w.amount.toLocaleString()}`,
         }));
 
-        const claims = claimsRes.data.map((c: any) => ({
+        const cItems = claims.map((c: any) => ({
           ...c,
           type: 'FuelClaim',
           title: 'เคลมน้ำมัน',
+          driverName: c.shipment?.driver?.fullName || 'N/A',
           date: new Date(c.createdAt),
           amountDisplay: `฿${c.claimAmount.toLocaleString()}`,
         }));
 
-        const combined = [...withdrawals, ...claims]
+        const combined = [...wItems, ...cItems]
           .sort((a, b) => b.date.getTime() - a.date.getTime())
-          .slice(0, 5); // Take latest 5
+          .slice(0, viewMode === 'all' ? 10 : 5);
 
         setRecentItems(combined);
       } catch (error) {
@@ -53,7 +72,7 @@ export default function DriverDashboard() {
     };
 
     fetchData();
-  }, []);
+  }, [viewMode, currentUser?.userId]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -62,7 +81,7 @@ export default function DriverDashboard() {
       case 'ApprovedByManager':
         return <span className="badge bg-blue-500/20 text-blue-400 border border-blue-500/20"><Clock className="w-3 h-3 mr-1"/> รอการเงิน</span>;
       case 'ApprovedByFinance':
-      case 'Approved': // Fallback if some APIs still return Approved
+      case 'Approved':
       case 'Paid':
         return <span className="badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/20"><CheckCircle className="w-3 h-3 mr-1"/> สำเร็จ</span>;
       case 'Rejected':
@@ -78,101 +97,105 @@ export default function DriverDashboard() {
 
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* 1. Header */}
-      <div className="card p-6 bg-gradient-to-r from-slate-800 to-slate-800/50 border-l-4 border-l-primary-500">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center border-2 border-slate-600">
-            <Truck className="w-8 h-8 text-primary-400" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white">{user?.fullName}</h1>
-            <p className="text-slate-400 flex items-center gap-2 mt-1">
-              <span className="px-2 py-0.5 bg-slate-700 rounded text-xs font-mono">ทะเบียน: {user?.vehiclePlate || 'ไม่ระบุ'}</span>
-              <span className="text-sm">พนักงานขับรถ</span>
-            </p>
+      {/* 1. Header (Only for personal view) */}
+      {viewMode === 'personal' && (
+        <div className="card p-6 bg-gradient-to-r from-slate-800 to-slate-800/50 border-l-4 border-l-primary-500">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center border-2 border-slate-600">
+              <Truck className="w-8 h-8 text-primary-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">{currentUser?.fullName}</h1>
+              <p className="text-slate-400 flex items-center gap-2 mt-1">
+                <span className="px-2 py-0.5 bg-slate-700 rounded text-xs font-mono">ทะเบียน: {currentUser?.vehiclePlate || 'ไม่ระบุ'}</span>
+                <span className="text-sm">พนักงานขับรถ</span>
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* 2. Current Job Card */}
+      {/* 2. Active Jobs Section */}
       <div className="card p-6">
-        <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <Navigation className="w-5 h-5 text-blue-400" /> งานปัจจุบัน
+        <h2 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+          <Navigation className="w-5 h-5 text-blue-400" /> 
+          {viewMode === 'all' ? 'งานที่กำลังดำเนินการทั้งหมด' : 'งานปัจจุบัน'}
         </h2>
-        {activeShipment ? (
-          <div className="bg-slate-800/50 rounded-xl p-5 border border-slate-700 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Truck className="w-24 h-24" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-4">
-                <span className="font-mono text-primary-400 font-bold bg-primary-500/10 px-3 py-1 rounded-lg border border-primary-500/20">
-                  {activeShipment.tripNumber}
-                </span>
-                <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">กำลังดำเนินการ</span>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-1"><MapPin className="w-5 h-5 text-emerald-400" /></div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium mb-0.5">จุดรับสินค้า</p>
-                    <p className="text-sm text-slate-200">{activeShipment.origin}</p>
+        
+        {activeShipments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeShipments.map(shipment => (
+              <div key={shipment.id} className="bg-slate-800/50 rounded-xl p-5 border border-slate-700 relative overflow-hidden group">
+                <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="font-mono text-primary-400 font-bold bg-primary-500/10 px-3 py-1 rounded-lg border border-primary-500/20 mr-3">
+                        {shipment.tripNumber}
+                      </span>
+                      {viewMode === 'all' && (
+                        <span className="text-sm text-slate-300 font-medium">โดย: {shipment.driver?.fullName}</span>
+                      )}
+                    </div>
+                    <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">Active</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1"><MapPin className="w-4 h-4 text-emerald-400" /></div>
+                      <p className="text-sm text-slate-300">{shipment.origin} → {shipment.destination}</p>
+                    </div>
                   </div>
                 </div>
-                <div className="ml-2.5 w-0.5 h-6 bg-slate-700 rounded-full" />
-                <div className="flex items-start gap-3">
-                  <div className="mt-1"><MapPin className="w-5 h-5 text-red-400" /></div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium mb-0.5">จุดส่งสินค้า</p>
-                    <p className="text-sm text-slate-200">{activeShipment.destination}</p>
-                  </div>
-                </div>
+                <Truck className="absolute -right-4 -bottom-4 w-20 h-20 text-white/5 group-hover:text-primary-500/10 transition-colors" />
               </div>
-            </div>
+            ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
-            <p className="text-slate-400">ไม่มีงานที่กำลังดำเนินการ</p>
+          <div className="text-center py-10 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
+            <p className="text-slate-500">ไม่มีงานที่กำลังดำเนินการ</p>
           </div>
         )}
       </div>
 
-      {/* 3. Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Link to="/withdrawals" className="card p-6 flex items-center justify-between group hover:border-amber-500/50 transition-all cursor-pointer bg-gradient-to-br from-slate-800 to-amber-900/10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Banknote className="w-6 h-6 text-amber-400" />
+      {/* 3. Action Buttons (Only for personal view) */}
+      {viewMode === 'personal' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link to="/withdrawals" className="card p-6 flex items-center justify-between group hover:border-amber-500/50 transition-all bg-gradient-to-br from-slate-800 to-amber-900/10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Banknote className="w-6 h-6 text-amber-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-lg">ขอเบิกเงิน</h3>
+                <p className="text-xs text-slate-400">เบิกเงินทดลองจ่ายสำหรับการเดินทาง</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-white text-lg">ขอเบิกเงิน</h3>
-              <p className="text-xs text-slate-400">เบิกเงินทดลองจ่ายสำหรับการเดินทาง</p>
+          </Link>
+          <Link to="/claims" className="card p-6 flex items-center justify-between group hover:border-emerald-500/50 transition-all bg-gradient-to-br from-slate-800 to-emerald-900/10">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Fuel className="w-6 h-6 text-emerald-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-white text-lg">เคลมค่าน้ำมัน</h3>
+                <p className="text-xs text-slate-400">ส่งบิลเคลมค่าน้ำมันหลังจบงาน</p>
+              </div>
             </div>
-          </div>
-        </Link>
-        <Link to="/claims" className="card p-6 flex items-center justify-between group hover:border-emerald-500/50 transition-all cursor-pointer bg-gradient-to-br from-slate-800 to-emerald-900/10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Fuel className="w-6 h-6 text-emerald-400" />
-            </div>
-            <div>
-              <h3 className="font-bold text-white text-lg">เคลมค่าน้ำมัน</h3>
-              <p className="text-xs text-slate-400">ส่งบิลเคลมค่าน้ำมันหลังจบงาน</p>
-            </div>
-          </div>
-        </Link>
-      </div>
+          </Link>
+        </div>
+      )}
 
       {/* 4. Recent Items Table */}
       <div className="card overflow-hidden">
-        <div className="p-5 border-b border-slate-700/50">
-          <h2 className="font-semibold text-white">รายการล่าสุด</h2>
+        <div className="p-5 border-b border-slate-700/50 flex justify-between items-center">
+          <h2 className="font-semibold text-white">รายการล่าสุด{viewMode === 'all' ? 'ของทุกคน' : ''}</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-800/50">
               <tr>
                 <th className="table-header text-left">ประเภท</th>
+                {viewMode === 'all' && <th className="table-header text-left">คนขับ</th>}
                 <th className="table-header text-left">เลขที่เดินรถ</th>
                 <th className="table-header text-left">จำนวนเงิน</th>
                 <th className="table-header text-left">สถานะ</th>
@@ -193,6 +216,9 @@ export default function DriverDashboard() {
                         <span className="text-sm text-slate-300">{item.title}</span>
                       </div>
                     </td>
+                    {viewMode === 'all' && (
+                      <td className="table-cell text-sm text-slate-300 font-medium">{item.driverName}</td>
+                    )}
                     <td className="table-cell font-mono text-xs text-slate-400">{item.tripNumber}</td>
                     <td className="table-cell font-semibold text-white">{item.amountDisplay}</td>
                     <td className="table-cell">{getStatusBadge(item.status)}</td>
@@ -201,7 +227,7 @@ export default function DriverDashboard() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-500">
+                  <td colSpan={viewMode === 'all' ? 6 : 5} className="py-8 text-center text-slate-500">
                     ไม่มีรายการล่าสุด
                   </td>
                 </tr>
