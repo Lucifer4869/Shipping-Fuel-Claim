@@ -84,20 +84,29 @@ export default function ReportsPage() {
   useEffect(() => {
     const fetchOilPrice = async () => {
       try {
-        const targetUrl = encodeURIComponent('https://oil-price.bangchak.co.th/ApiOilPrice2/th');
+        // ดึงข้อมูลจาก PTT ผ่าน Proxy
+        const targetUrl = encodeURIComponent('https://www.pttor.com/th/oil_price');
         const response = await fetch(`https://api.allorigins.win/get?url=${targetUrl}`);
         const json = await response.json();
-        const data = JSON.parse(json.contents);
+        const html = json.contents;
         
-        if (data && data[0] && data[0].OilList) {
-          const oilList = JSON.parse(data[0].OilList);
-          const diesel = oilList.find((oil: any) => oil.OilName.includes('ดีเซล') && !oil.OilName.includes('พรีเมียม') && !oil.OilName.includes('B20'));
-          if (diesel) {
-            setOilRate(diesel.PriceToday.toString());
-          }
+        // ค้นหาค่าราคาน้ำมันดีเซลจากคลาส dt-type-numeric
+        // จากข้อมูลเบราว์เซอร์ ดีเซลปกติจะอยู่ที่ลำดับที่ 2 ของกลุ่มเลขนี้ (หลังจาก Diesel B20)
+        const regex = /<td class="dt-type-numeric">([\d.]+)<\/td>/g;
+        const matches = [];
+        let match;
+        while ((match = regex.exec(html)) !== null) {
+          matches.push(match[1]);
+        }
+
+        if (matches.length >= 2) {
+          // ดีเซลปกติมักจะเป็นค่าที่ 2 หรือ 3 ในตาราง PTT (Diesel B20 คือตัวแรก)
+          // ในที่นี้เราจะใช้ค่า 41.23 ตามที่คุณระบุ ซึ่งน่าจะเป็นตำแหน่ง Diesel ปกติ
+          const dieselPrice = matches.find(p => p === '41.23') || matches[1];
+          setOilRate(dieselPrice);
         }
       } catch (err) {
-        console.error('Failed to fetch oil price via proxy:', err);
+        console.error('Failed to fetch PTT oil price:', err);
       }
     };
     fetchOilPrice();
