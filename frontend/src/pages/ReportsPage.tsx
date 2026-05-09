@@ -6,10 +6,18 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const formatDateAD = (date: Date | string) => {
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 export default function ReportsPage() {
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [reportDate, setReportDate] = useState(new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' }));
+  const [reportDate, setReportDate] = useState(formatDateAD(new Date()));
   
   const [reportData, setReportData] = useState<any[]>([]);
   const [totals, setTotals] = useState({ fuel: 0, allowance: 0, grandTotal: 0 });
@@ -38,15 +46,9 @@ export default function ReportsPage() {
         const fuelTotal = sClaims.reduce((sum: number, c: any) => sum + Number(c.claimAmount), 0);
         const allowanceTotal = sWithdrawals.reduce((sum: number, w: any) => sum + Number(w.amount), 0);
         
-        const d = new Date(s.createdAt);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        const formattedDate = `${day}/${month}/${year}`;
-        
         return {
           id: s.id,
-          date: formattedDate,
+          date: formatDateAD(s.createdAt),
           tripNumber: s.tripNumber,
           vehiclePlate: s.vehiclePlate,
           plan: `${s.origin} - ${s.destination}`,
@@ -151,6 +153,9 @@ export default function ReportsPage() {
             {/* Report Header Like Excel */}
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold mb-4">สรุปทดลองจ่ายแผน LH ประจำวัน</h2>
+              <div className="text-sm mb-4 hidden print:block">
+                ประจำวันที่ {formatDateAD(startDate)} ถึง {formatDateAD(endDate)}
+              </div>
               
               <div className="flex justify-start mb-1">
                 <div className="border border-black px-4 py-1 w-64 flex justify-between bg-gray-50">
