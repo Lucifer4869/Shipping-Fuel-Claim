@@ -21,6 +21,7 @@ export default function ReportsPage() {
   
   const [reportData, setReportData] = useState<any[]>([]);
   const [totals, setTotals] = useState({ fuel: 0, allowance: 0, grandTotal: 0 });
+  const [oilRate, setOilRate] = useState('32.94');
 
   const fetchData = async () => {
     try {
@@ -161,7 +162,14 @@ export default function ReportsPage() {
                   เช็คราคาน้ำมัน PTT <Info className="w-2.5 h-2.5" />
                 </a>
               </label>
-              <input type="number" step="0.01" className="input-field text-sm" placeholder="เช่น 32.94" />
+              <input 
+                type="number" 
+                step="0.01" 
+                className="input-field text-sm" 
+                placeholder="เช่น 32.94" 
+                value={oilRate}
+                onChange={e => setOilRate(e.target.value)}
+              />
             </div>
 
             <button onClick={fetchData} className="btn-secondary w-full text-sm py-2.5 mt-2">อัปเดตข้อมูล</button>
@@ -186,10 +194,14 @@ export default function ReportsPage() {
                 ประจำวันที่ {formatDateAD(startDate)} ถึง {formatDateAD(endDate)}
               </div>
               
-              <div className="flex justify-start mb-1">
+              <div className="flex justify-between items-end mb-1">
                 <div className="border border-black px-4 py-1 w-64 flex justify-between bg-gray-50">
                   <span className="font-bold text-sm">วันที่จัดทำ :</span>
                   <span className="text-sm text-red-600 font-bold">{reportDate}</span>
+                </div>
+                <div className="border border-black px-4 py-1 w-64 flex justify-between bg-gray-50">
+                  <span className="font-bold text-sm">อัตราน้ำมันประจำวัน :</span>
+                  <span className="text-sm text-blue-600 font-bold">{oilRate} บาท</span>
                 </div>
               </div>
             </div>
