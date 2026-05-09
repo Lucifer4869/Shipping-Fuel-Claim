@@ -84,8 +84,11 @@ export default function ReportsPage() {
   useEffect(() => {
     const fetchOilPrice = async () => {
       try {
-        const response = await fetch('https://oil-price.bangchak.co.th/ApiOilPrice2/th');
-        const data = await response.json();
+        const targetUrl = encodeURIComponent('https://oil-price.bangchak.co.th/ApiOilPrice2/th');
+        const response = await fetch(`https://api.allorigins.win/get?url=${targetUrl}`);
+        const json = await response.json();
+        const data = JSON.parse(json.contents);
+        
         if (data && data[0] && data[0].OilList) {
           const oilList = JSON.parse(data[0].OilList);
           const diesel = oilList.find((oil: any) => oil.OilName.includes('ดีเซล') && !oil.OilName.includes('พรีเมียม') && !oil.OilName.includes('B20'));
@@ -94,7 +97,7 @@ export default function ReportsPage() {
           }
         }
       } catch (err) {
-        console.error('Failed to fetch oil price:', err);
+        console.error('Failed to fetch oil price via proxy:', err);
       }
     };
     fetchOilPrice();
