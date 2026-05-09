@@ -41,7 +41,7 @@ export const completeShipment = (id: number, endMileage: number) =>
   api.patch(`/shipments/${id}/complete`, endMileage);
 
 // Withdrawals
-export const getWithdrawals = () => api.get('/withdrawals');
+export const getWithdrawals = (shipmentId?: number) => api.get('/withdrawals', { params: { shipmentId } });
 export const createWithdrawal = (data: object) => api.post('/withdrawals', data);
 export const managerApproveWithdrawal = (id: number, data: object) =>
   api.patch(`/withdrawals/${id}/approve`, data);
@@ -50,7 +50,7 @@ export const financeApproveWithdrawal = (id: number, data: object) =>
 export const deleteWithdrawal = (id: number) => api.delete(`/withdrawals/${id}`);
 
 // Fuel Claims
-export const getFuelClaims = () => api.get('/claims');
+export const getFuelClaims = (shipmentId?: number) => api.get('/claims', { params: { shipmentId } });
 export const createFuelClaim = (data: object) => api.post('/claims', data);
 export const managerApproveFuelClaim = (id: number, data: object) =>
   api.patch(`/claims/${id}/approve`, data);

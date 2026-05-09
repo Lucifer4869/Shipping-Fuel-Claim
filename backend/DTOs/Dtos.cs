@@ -62,6 +62,7 @@ public class ShipmentDto
     public int Id { get; set; }
     public string TripNumber { get; set; } = string.Empty;
     public string VehiclePlate { get; set; } = string.Empty;
+    public int DriverId { get; set; }
     public string DriverName { get; set; } = string.Empty;
     public string Origin { get; set; } = string.Empty;
     public double? OriginLat { get; set; }
@@ -101,12 +102,20 @@ public class WithdrawalDto
 {
     public int Id { get; set; }
     public int ShipmentId { get; set; }
+    public int DriverId { get; set; }
     public string TripNumber { get; set; } = string.Empty;
+    public string VehiclePlate { get; set; } = string.Empty; // เพิ่มทะเบียนรถ
     public string DriverName { get; set; } = string.Empty;
     public decimal Amount { get; set; }
     public string Reason { get; set; } = string.Empty;
     public string? AdditionalItems { get; set; }
     public string Status { get; set; } = string.Empty;
+    
+    // ข้อมูลงานเดินรถที่เกี่ยวข้อง
+    public string Origin { get; set; } = string.Empty;
+    public string Destination { get; set; } = string.Empty;
+    public double StartMileage { get; set; }
+
     public string? ManagerName { get; set; }
     public string? ManagerNote { get; set; }
     public DateTime? ManagerApprovedAt { get; set; }
@@ -136,7 +145,9 @@ public class FuelClaimDto
 {
     public int Id { get; set; }
     public int ShipmentId { get; set; }
+    public int DriverId { get; set; }
     public string TripNumber { get; set; } = string.Empty;
+    public string VehiclePlate { get; set; } = string.Empty; // เพิ่มทะเบียนรถ
     public string DriverName { get; set; } = string.Empty;
     public decimal ClaimAmount { get; set; }
     public string? ReceiptUrl { get; set; }
@@ -144,6 +155,11 @@ public class FuelClaimDto
     public double MileageIn { get; set; }
     public double Distance => MileageIn - MileageOut;
     public string Status { get; set; } = string.Empty;
+
+    // ข้อมูลงานเดินรถที่เกี่ยวข้อง
+    public string Origin { get; set; } = string.Empty;
+    public string Destination { get; set; } = string.Empty;
+
     public string? ManagerName { get; set; }
     public string? ManagerNote { get; set; }
     public DateTime? ManagerApprovedAt { get; set; }
@@ -163,6 +179,7 @@ public class AuditLogDto
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
     public string PerformedByName { get; set; } = string.Empty;
+    public string? PerformedByRole { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

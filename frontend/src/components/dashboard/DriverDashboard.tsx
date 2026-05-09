@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getShipments, getWithdrawals, getFuelClaims } from '../../lib/api';
-import { Truck, MapPin, Navigation, Banknote, Fuel, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Truck, MapPin, Navigation, Banknote, Fuel, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import RequestDetailModal from './RequestDetailModal';
 
 interface DriverDashboardProps {
   viewMode?: 'personal' | 'all';
@@ -13,6 +14,7 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
   const [activeShipments, setActiveShipments] = useState<any[]>([]);
   const [recentItems, setRecentItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,29 +25,23 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
           getFuelClaims()
         ]);
 
-        // In 'all' mode, we take everything. In 'personal', API already filters or we filter here if needed.
-        // The current API returns all for Admin/Manager anyway.
-        
         let shipments = shipmentsRes.data;
         let withdrawals = withdrawalsRes.data;
         let claims = claimsRes.data;
 
         if (viewMode === 'personal') {
           shipments = shipments.filter((s: any) => s.driverId === currentUser?.userId);
-          withdrawals = withdrawals.filter((w: any) => w.shipment?.driverId === currentUser?.userId);
-          claims = claims.filter((c: any) => c.shipment?.driverId === currentUser?.userId);
+          withdrawals = withdrawals.filter((w: any) => w.driverId === currentUser?.userId);
+          claims = claims.filter((c: any) => c.driverId === currentUser?.userId);
         }
 
-        // Get active shipments
         const active = shipments.filter((s: any) => s.status === 'Active');
         setActiveShipments(active);
 
-        // Combine withdrawals and claims for recent items
         const wItems = withdrawals.map((w: any) => ({
           ...w,
           type: 'Withdrawal',
           title: 'เบิกเงิน',
-          driverName: w.shipment?.driver?.fullName || 'N/A',
           date: new Date(w.createdAt),
           amountDisplay: `฿${w.amount.toLocaleString()}`,
         }));
@@ -54,7 +50,6 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
           ...c,
           type: 'FuelClaim',
           title: 'เคลมน้ำมัน',
-          driverName: c.shipment?.driver?.fullName || 'N/A',
           date: new Date(c.createdAt),
           amountDisplay: `฿${c.claimAmount.toLocaleString()}`,
         }));
@@ -133,7 +128,7 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
                         {shipment.tripNumber}
                       </span>
                       {viewMode === 'all' && (
-                        <span className="text-sm text-slate-300 font-medium">โดย: {shipment.driver?.fullName}</span>
+                        <span className="text-sm text-slate-300 font-medium">โดย: {shipment.driverName}</span>
                       )}
                     </div>
                     <span className="text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">Active</span>
@@ -152,7 +147,12 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
           </div>
         ) : (
           <div className="text-center py-10 bg-slate-800/30 rounded-xl border border-dashed border-slate-700">
-            <p className="text-slate-500">ไม่มีงานที่กำลังดำเนินการ</p>
+            <p className="text-slate-400 mb-2 font-medium">ไม่มีงานที่พนักงานกำลังดำเนินการอยู่ในขณะนี้</p>
+            {viewMode === 'all' && (
+              <Link to="/shipments" className="text-primary-400 hover:text-primary-300 text-sm font-bold flex items-center justify-center gap-1">
+                ไปที่หน้ารายการเดินรถทั้งหมด <Navigation className="w-4 h-4" />
+              </Link>
+            )}
           </div>
         )}
       </div>
@@ -200,12 +200,13 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
                 <th className="table-header text-left">จำนวนเงิน</th>
                 <th className="table-header text-left">สถานะ</th>
                 <th className="table-header text-left">วันที่</th>
+                <th className="table-header text-right"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-700/50">
               {recentItems.length > 0 ? (
                 recentItems.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-slate-800/30">
+                  <tr key={idx} className="hover:bg-slate-800/30 group">
                     <td className="table-cell">
                       <div className="flex items-center gap-2">
                         {item.type === 'Withdrawal' ? (
@@ -223,11 +224,20 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
                     <td className="table-cell font-semibold text-white">{item.amountDisplay}</td>
                     <td className="table-cell">{getStatusBadge(item.status)}</td>
                     <td className="table-cell text-xs text-slate-400">{item.date.toLocaleDateString('th-TH')}</td>
+                    <td className="table-cell text-right">
+                      <button 
+                        onClick={() => setSelectedRequest(item)}
+                        className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        title="ดูรายละเอียด"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={viewMode === 'all' ? 6 : 5} className="py-8 text-center text-slate-500">
+                  <td colSpan={viewMode === 'all' ? 7 : 6} className="py-8 text-center text-slate-500">
                     ไม่มีรายการล่าสุด
                   </td>
                 </tr>
@@ -236,6 +246,14 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
           </table>
         </div>
       </div>
+
+      {/* Shared Detail Modal */}
+      {selectedRequest && (
+        <RequestDetailModal 
+          item={selectedRequest} 
+          onClose={() => setSelectedRequest(null)} 
+        />
+      )}
     </div>
   );
 }

@@ -25,10 +25,11 @@ public class FuelClaimsController : ControllerBase
 
     private int GetUserId() => int.Parse(User.FindFirstValue("userId")!);
     private string GetUserName() => User.FindFirstValue("fullName") ?? "";
+    private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";
 
     /// <summary>ดูรายการเคลมน้ำมัน</summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<FuelClaimDto>>> GetClaims()
+    public async Task<ActionResult<IEnumerable<FuelClaimDto>>> GetClaims([FromQuery] int? shipmentId = null)
     {
         var userId = GetUserId();
         var role = User.FindFirstValue(ClaimTypes.Role);
@@ -39,6 +40,9 @@ public class FuelClaimsController : ControllerBase
             .Include(f => f.Finance)
             .AsQueryable();
 
+        if (shipmentId.HasValue)
+            query = query.Where(f => f.ShipmentId == shipmentId.Value);
+
         if (role == "Driver")
             query = query.Where(f => f.Shipment.DriverId == userId);
 
@@ -48,13 +52,17 @@ public class FuelClaimsController : ControllerBase
             {
                 Id = f.Id,
                 ShipmentId = f.ShipmentId,
+                DriverId = f.Shipment.DriverId,
                 TripNumber = f.Shipment.TripNumber,
+                VehiclePlate = f.Shipment.VehiclePlate,
                 DriverName = f.Shipment.Driver.FullName,
                 ClaimAmount = f.ClaimAmount,
                 ReceiptUrl = f.ReceiptUrl,
                 MileageOut = f.MileageOut,
                 MileageIn = f.MileageIn,
                 Status = f.Status.ToString(),
+                Origin = f.Shipment.Origin,
+                Destination = f.Shipment.Destination,
                 ManagerName = f.Manager != null ? f.Manager.FullName : null,
                 ManagerNote = f.ManagerNote,
                 ManagerApprovedAt = f.ManagerApprovedAt,
@@ -97,7 +105,7 @@ public class FuelClaimsController : ControllerBase
         _db.FuelClaims.Add(claim);
         await _db.SaveChangesAsync();
 
-        await _audit.LogAsync("FuelClaims", claim.Id, "CREATE", null, request, userId, GetUserName());
+        await _audit.LogAsync("FuelClaims", claim.Id, "CREATE", null, request, userId, GetUserName(), GetUserRole());
 
         return CreatedAtAction(null, new FuelClaimDto
         {
@@ -135,7 +143,7 @@ public class FuelClaimsController : ControllerBase
         await _audit.LogAsync("FuelClaims", id, "UPDATE",
             new { Status = oldStatus.ToString() },
             new { Status = claim.Status.ToString(), Note = request.Note },
-            userId, GetUserName());
+            userId, GetUserName(), GetUserRole());
 
         return Ok(new { message = request.IsApproved ? "อนุมัติเคลมน้ำมันเรียบร้อย" : "ปฏิเสธเรียบร้อย" });
     }
@@ -162,7 +170,7 @@ public class FuelClaimsController : ControllerBase
         await _audit.LogAsync("FuelClaims", id, "UPDATE",
             new { Status = oldStatus.ToString() },
             new { Status = claim.Status.ToString(), Note = request.Note },
-            userId, GetUserName());
+            userId, GetUserName(), GetUserRole());
 
         return Ok(new { message = request.IsApproved ? "อนุมัติโดย Finance เรียบร้อย" : "ปฏิเสธเรียบร้อย" });
     }
@@ -180,7 +188,7 @@ public class FuelClaimsController : ControllerBase
         await _db.SaveChangesAsync();
         await _audit.LogAsync("FuelClaims", id, "DELETE", 
             new { claim.Id, claim.ShipmentId, claim.ClaimAmount, Status = claim.Status.ToString() }, 
-            null, userId, GetUserName());
+            null, userId, GetUserName(), GetUserRole());
 
         return Ok(new { message = "ลบรายการเรียบร้อย" });
     }

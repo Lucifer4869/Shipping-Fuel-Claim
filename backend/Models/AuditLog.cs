@@ -10,6 +10,7 @@ public class AuditLog
     public string? NewValue { get; set; }
     public int PerformedById { get; set; }
     public string PerformedByName { get; set; } = string.Empty;
+    public string PerformedByRole { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation

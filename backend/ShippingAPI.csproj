@@ -19,4 +19,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <Target Name="KillExistingProcess" BeforeTargets="PrepareForBuild">
+    <Exec Command="powershell -Command &quot;Get-Process ShippingAPI -ErrorAction SilentlyContinue | Stop-Process -Force&quot;" IgnoreExitCode="true" />
+  </Target>
 </Project>

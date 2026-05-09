@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getWithdrawals, getFuelClaims, financeApproveFuelClaim, financeApproveWithdrawal } from '../../lib/api';
-import { Banknote, CheckCircle, Search, Clock, FileText, Fuel } from 'lucide-react';
+import { Banknote, CheckCircle, Search, Clock, FileText, Fuel, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function FinanceDashboard() {
@@ -9,6 +9,8 @@ export default function FinanceDashboard() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [remark, setRemark] = useState('');
 
   const fetchData = async () => {
     try {
@@ -51,19 +53,23 @@ export default function FinanceDashboard() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const handleConfirmPayment = async (item: any) => {
-    const confirm = window.confirm(`ยืนยันการจ่ายเงินสำหรับ ${item.title} จำนวน ฿${item.amount.toLocaleString()} ใช่หรือไม่?`);
-    if (!confirm) return;
+  const handleActionClick = (item: any) => {
+    setSelectedItem(item);
+    setRemark('จ่ายเงินเรียบร้อย');
+  };
 
-    const uniqueId = `${item.type}-${item.id}`;
+  const submitAction = async () => {
+    if (!selectedItem) return;
+    const uniqueId = `${selectedItem.type}-${selectedItem.id}`;
     setSubmittingId(uniqueId);
     try {
-      if (item.type === 'Withdrawal') {
-        await financeApproveWithdrawal(item.id, { isApproved: true, note: 'จ่ายเงินเรียบร้อย' });
+      if (selectedItem.type === 'Withdrawal') {
+        await financeApproveWithdrawal(selectedItem.id, { isApproved: true, note: remark });
       } else {
-        await financeApproveFuelClaim(item.id, { isApproved: true, note: 'จ่ายเงินเรียบร้อย' });
+        await financeApproveFuelClaim(selectedItem.id, { isApproved: true, note: remark });
       }
       toast.success('บันทึกการจ่ายเงินเรียบร้อย');
+      setSelectedItem(null);
       fetchData();
     } catch (error) {
       toast.error('เกิดข้อผิดพลาดในการบันทึก');
@@ -74,8 +80,9 @@ export default function FinanceDashboard() {
 
   const filteredItems = awaitingItems.filter(item => {
     const term = searchTerm.toLowerCase();
-    return (item.driverName && item.driverName.toLowerCase().includes(term)) ||
-           (item.tripNumber && item.tripNumber.toLowerCase().includes(term));
+    return (item.driverName?.toLowerCase().includes(term)) ||
+           (item.tripNumber?.toLowerCase().includes(term)) ||
+           (item.vehiclePlate?.toLowerCase().includes(term));
   });
 
   if (loading) {
@@ -126,7 +133,7 @@ export default function FinanceDashboard() {
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text" 
-              placeholder="ค้นหาชื่อคนขับ, ทะเบียนรถ, ทริป..." 
+              placeholder="ค้นหาคนขับ, ทะเบียนรถ, ทริป..." 
               className="input-field pl-9 py-2 text-sm w-full md:w-80"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -140,9 +147,8 @@ export default function FinanceDashboard() {
               <tr>
                 <th className="table-header text-left">ประเภท</th>
                 <th className="table-header text-left">ชื่อคนขับ</th>
-                <th className="table-header text-left">เลขเดินรถ</th>
+                <th className="table-header text-left">เลขเดินรถ/ทะเบียน</th>
                 <th className="table-header text-right">จำนวนเงิน</th>
-                <th className="table-header text-center">Manager อนุมัติเมื่อ</th>
                 <th className="table-header text-center">จัดการ</th>
               </tr>
             </thead>
@@ -160,25 +166,21 @@ export default function FinanceDashboard() {
                           {item.title}
                         </span>
                       </td>
+                      <td className="table-cell text-slate-200 font-medium">{item.driverName}</td>
                       <td className="table-cell">
-                        <p className="text-slate-200 font-medium">{item.driverName}</p>
+                        <div className="flex flex-col">
+                          <span className="font-mono text-xs text-slate-400">{item.tripNumber}</span>
+                          <span className="text-[10px] text-slate-500 font-bold">{item.vehiclePlate}</span>
+                        </div>
                       </td>
-                      <td className="table-cell font-mono text-xs text-slate-400">{item.tripNumber}</td>
                       <td className="table-cell font-bold text-white text-right text-lg">฿{item.amount.toLocaleString()}</td>
-                      <td className="table-cell text-xs text-slate-400 text-center">
-                        {item.managerApprovedAt ? new Date(item.managerApprovedAt).toLocaleDateString('th-TH') : '-'}
-                      </td>
                       <td className="table-cell text-center">
                         <button 
-                          onClick={() => handleConfirmPayment(item)} 
+                          onClick={() => handleActionClick(item)} 
                           disabled={isSubmitting}
-                          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors text-sm"
                         >
-                          {isSubmitting ? (
-                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                          ) : (
-                            <CheckCircle className="w-4 h-4" />
-                          )}
+                          <CheckCircle className="w-4 h-4" />
                           Confirm Payment
                         </button>
                       </td>
@@ -187,19 +189,87 @@ export default function FinanceDashboard() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-16 text-center">
-                    <div className="flex flex-col items-center text-slate-500">
-                      <CheckCircle className="w-12 h-12 mb-3 opacity-20" />
-                      <p className="text-lg font-medium">ไม่มีรายการรอจ่ายเงิน</p>
-                      {searchTerm && <p className="text-sm mt-1">ไม่พบผลลัพธ์สำหรับการค้นหา "{searchTerm}"</p>}
-                    </div>
-                  </td>
+                  <td colSpan={6} className="py-16 text-center text-slate-500">ไม่มีรายการรอจ่ายเงิน</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {selectedItem && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="card w-full max-w-lg p-0 overflow-hidden animate-slideIn">
+            <div className="p-4 border-b border-slate-700/50 flex justify-between items-center bg-emerald-500/10">
+              <h3 className="text-lg font-bold text-emerald-400 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5"/> ยืนยันการจ่ายเงิน
+              </h3>
+              <button onClick={() => setSelectedItem(null)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                <div className="flex justify-between mb-2">
+                  <span className="text-slate-400 text-sm">ผู้รับเงิน:</span>
+                  <span className="text-white font-medium">{selectedItem.driverName}</span>
+                </div>
+                <div className="flex justify-between mb-2">
+                  <span className="text-slate-400 text-sm">ประเภท:</span>
+                  <span className="text-white">{selectedItem.title}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400 text-sm">จำนวนเงินที่ต้องจ่าย:</span>
+                  <span className="text-2xl font-bold text-emerald-400">฿{selectedItem.amount.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Shipment Details Context */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">ข้อมูลงานที่เกี่ยวข้อง</p>
+                <div className="bg-blue-500/5 rounded-xl p-4 border border-blue-500/20">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase">Trip Number</p>
+                      <p className="text-sm font-mono text-blue-400">{selectedItem.tripNumber}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase">ทะเบียนรถ</p>
+                      <p className="text-sm font-bold text-slate-300">{selectedItem.vehiclePlate}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-slate-700/50">
+                    <p className="text-[10px] text-slate-500 uppercase mb-1">เส้นทาง</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-white">{selectedItem.origin}</span>
+                      <span className="text-slate-600">→</span>
+                      <span className="text-sm text-white">{selectedItem.destination}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {selectedItem.managerNote && (
+                <div className="bg-slate-800 rounded-lg p-3 border border-slate-700">
+                  <p className="text-[10px] text-slate-500 uppercase mb-1">หมายเหตุจาก Manager ({selectedItem.managerName})</p>
+                  <p className="text-sm text-slate-300">{selectedItem.managerNote}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-4">
+                <button onClick={() => setSelectedItem(null)} className="btn-secondary flex-1 justify-center">ยกเลิก</button>
+                <button 
+                  onClick={submitAction} 
+                  disabled={!!submittingId} 
+                  className="btn-success flex-1 justify-center"
+                >
+                  {submittingId ? 'กำลังดำเนินการ...' : 'ยืนยันการจ่ายเงิน'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

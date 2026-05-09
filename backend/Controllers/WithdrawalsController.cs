@@ -25,10 +25,11 @@ public class WithdrawalsController : ControllerBase
 
     private int GetUserId() => int.Parse(User.FindFirstValue("userId")!);
     private string GetUserName() => User.FindFirstValue("fullName") ?? "";
+    private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";
 
     /// <summary>ดูรายการขอเบิกเงิน</summary>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<WithdrawalDto>>> GetWithdrawals()
+    public async Task<ActionResult<IEnumerable<WithdrawalDto>>> GetWithdrawals([FromQuery] int? shipmentId = null)
     {
         var userId = GetUserId();
         var role = User.FindFirstValue(ClaimTypes.Role);
@@ -39,6 +40,9 @@ public class WithdrawalsController : ControllerBase
             .Include(w => w.Finance)
             .AsQueryable();
 
+        if (shipmentId.HasValue)
+            query = query.Where(w => w.ShipmentId == shipmentId.Value);
+
         if (role == "Driver")
             query = query.Where(w => w.Shipment.DriverId == userId);
 
@@ -48,12 +52,17 @@ public class WithdrawalsController : ControllerBase
             {
                 Id = w.Id,
                 ShipmentId = w.ShipmentId,
+                DriverId = w.Shipment.DriverId,
                 TripNumber = w.Shipment.TripNumber,
+                VehiclePlate = w.Shipment.VehiclePlate,
                 DriverName = w.Shipment.Driver.FullName,
                 Amount = w.Amount,
                 Reason = w.Reason,
                 AdditionalItems = w.AdditionalItems,
                 Status = w.Status.ToString(),
+                Origin = w.Shipment.Origin,
+                Destination = w.Shipment.Destination,
+                StartMileage = w.Shipment.StartMileage,
                 ManagerName = w.Manager != null ? w.Manager.FullName : null,
                 ManagerNote = w.ManagerNote,
                 ManagerApprovedAt = w.ManagerApprovedAt,
@@ -95,7 +104,7 @@ public class WithdrawalsController : ControllerBase
         _db.Withdrawals.Add(withdrawal);
         await _db.SaveChangesAsync();
 
-        await _audit.LogAsync("Withdrawals", withdrawal.Id, "CREATE", null, request, userId, GetUserName());
+        await _audit.LogAsync("Withdrawals", withdrawal.Id, "CREATE", null, request, userId, GetUserName(), GetUserRole());
 
         return CreatedAtAction(null, new WithdrawalDto
         {
@@ -134,7 +143,7 @@ public class WithdrawalsController : ControllerBase
         await _audit.LogAsync("Withdrawals", id, "UPDATE",
             new { Status = oldStatus.ToString() },
             new { Status = withdrawal.Status.ToString(), Note = request.Note },
-            userId, GetUserName());
+            userId, GetUserName(), GetUserRole());
 
         return Ok(new { message = request.IsApproved ? "อนุมัติเรียบร้อย" : "ปฏิเสธเรียบร้อย" });
     }
@@ -161,7 +170,7 @@ public class WithdrawalsController : ControllerBase
         await _audit.LogAsync("Withdrawals", id, "UPDATE",
             new { Status = oldStatus.ToString() },
             new { Status = withdrawal.Status.ToString(), Note = request.Note },
-            userId, GetUserName());
+            userId, GetUserName(), GetUserRole());
 
         return Ok(new { message = request.IsApproved ? "อนุมัติโดย Finance เรียบร้อย" : "ปฏิเสธเรียบร้อย" });
     }
@@ -179,7 +188,7 @@ public class WithdrawalsController : ControllerBase
         await _db.SaveChangesAsync();
         await _audit.LogAsync("Withdrawals", id, "DELETE", 
             new { withdrawal.Id, withdrawal.ShipmentId, withdrawal.Amount, withdrawal.Reason, Status = withdrawal.Status.ToString() }, 
-            null, userId, GetUserName());
+            null, userId, GetUserName(), GetUserRole());
 
         return Ok(new { message = "ลบรายการเรียบร้อย" });
     }

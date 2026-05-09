@@ -25,6 +25,7 @@ public class UsersController : ControllerBase
 
     private int GetUserId() => int.Parse(User.FindFirstValue("userId")!);
     private string GetUserName() => User.FindFirstValue("fullName") ?? "";
+    private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";
 
     /// <summary>ดูรายการผู้ใช้ทั้งหมด</summary>
     [HttpGet]
@@ -72,7 +73,7 @@ public class UsersController : ControllerBase
         await _db.SaveChangesAsync();
 
         var requestToLog = new { request.Username, request.FullName, request.Role, request.VehiclePlate };
-        await _audit.LogAsync("Users", user.Id, "CREATE", null, requestToLog, GetUserId(), GetUserName());
+        await _audit.LogAsync("Users", user.Id, "CREATE", null, requestToLog, GetUserId(), GetUserName(), GetUserRole());
 
         return CreatedAtAction(nameof(GetUsers), null, new UserDto
         {
@@ -110,7 +111,7 @@ public class UsersController : ControllerBase
         await _db.SaveChangesAsync();
         
         var newValues = new { user.FullName, Role = user.Role.ToString(), user.VehiclePlate, user.IsActive };
-        await _audit.LogAsync("Users", id, "UPDATE", oldValues, newValues, GetUserId(), GetUserName());
+        await _audit.LogAsync("Users", id, "UPDATE", oldValues, newValues, GetUserId(), GetUserName(), GetUserRole());
 
         return NoContent();
     }
@@ -127,7 +128,7 @@ public class UsersController : ControllerBase
         _db.Users.Remove(user);
         await _db.SaveChangesAsync();
 
-        await _audit.LogAsync("Users", id, "DELETE", new { user.Username, user.FullName }, null, GetUserId(), GetUserName());
+        await _audit.LogAsync("Users", id, "DELETE", new { user.Username, user.FullName }, null, GetUserId(), GetUserName(), GetUserRole());
 
         return NoContent();
     }

@@ -20,7 +20,8 @@ public class AuditService
         object? oldValue,
         object? newValue,
         int performedById,
-        string performedByName)
+        string performedByName,
+        string performedByRole)
     {
         var log = new AuditLog
         {
@@ -31,6 +32,7 @@ public class AuditService
             NewValue = newValue != null ? JsonSerializer.Serialize(newValue) : null,
             PerformedById = performedById,
             PerformedByName = performedByName,
+            PerformedByRole = performedByRole,
             CreatedAt = DateTime.UtcNow
         };
 

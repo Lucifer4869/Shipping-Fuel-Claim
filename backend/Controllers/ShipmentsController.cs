@@ -25,6 +25,7 @@ public class ShipmentsController : ControllerBase
 
     private int GetUserId() => int.Parse(User.FindFirstValue("userId")!);
     private string GetUserName() => User.FindFirstValue("fullName") ?? "";
+    private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";
 
     /// <summary>ดูรายการเดินรถทั้งหมด (Admin/Manager/Finance เห็นทั้งหมด, Driver เห็นเฉพาะของตัวเอง)</summary>
     [HttpGet]
@@ -49,6 +50,7 @@ public class ShipmentsController : ControllerBase
                 Id = s.Id,
                 TripNumber = s.TripNumber,
                 VehiclePlate = s.VehiclePlate,
+                DriverId = s.DriverId,
                 DriverName = s.Driver.FullName,
                 Origin = s.Origin,
                 OriginLat = s.OriginLat,
@@ -94,6 +96,7 @@ public class ShipmentsController : ControllerBase
             Id = s.Id,
             TripNumber = s.TripNumber,
             VehiclePlate = s.VehiclePlate,
+            DriverId = s.DriverId,
             DriverName = s.Driver.FullName,
             Origin = s.Origin,
             Destination = s.Destination,
@@ -137,7 +140,7 @@ public class ShipmentsController : ControllerBase
         _db.Shipments.Add(shipment);
         await _db.SaveChangesAsync();
 
-        await _audit.LogAsync("Shipments", shipment.Id, "CREATE", null, request, userId, GetUserName());
+        await _audit.LogAsync("Shipments", shipment.Id, "CREATE", null, request, userId, GetUserName(), GetUserRole());
 
         var driver = await _db.Users.FindAsync(userId);
         return CreatedAtAction(nameof(GetShipment), new { id = shipment.Id }, new ShipmentDto
@@ -145,6 +148,7 @@ public class ShipmentsController : ControllerBase
             Id = shipment.Id,
             TripNumber = shipment.TripNumber,
             VehiclePlate = shipment.VehiclePlate,
+            DriverId = shipment.DriverId,
             DriverName = driver?.FullName ?? "",
             Origin = shipment.Origin,
             OriginLat = shipment.OriginLat,
@@ -208,7 +212,7 @@ public class ShipmentsController : ControllerBase
             shipment.SenderName, shipment.SenderPhone, shipment.ReceiverName, shipment.ReceiverPhone,
             shipment.StartMileage 
         };
-        await _audit.LogAsync("Shipments", id, "UPDATE", oldValues, newValues, userId, GetUserName());
+        await _audit.LogAsync("Shipments", id, "UPDATE", oldValues, newValues, userId, GetUserName(), GetUserRole());
 
         return NoContent();
     }
@@ -234,7 +238,7 @@ public class ShipmentsController : ControllerBase
         await _audit.LogAsync("Shipments", id, "UPDATE",
             new { Status = oldStatus.ToString() },
             new { Status = "Completed", EndMileage = endMileage },
-            userId, GetUserName());
+            userId, GetUserName(), GetUserRole());
 
         return NoContent();
     }
@@ -261,7 +265,7 @@ public class ShipmentsController : ControllerBase
         _db.Shipments.Remove(shipment);
         await _db.SaveChangesAsync();
 
-        await _audit.LogAsync("Shipments", id, "DELETE", new { shipment.TripNumber }, null, GetUserId(), GetUserName());
+        await _audit.LogAsync("Shipments", id, "DELETE", new { shipment.TripNumber }, null, GetUserId(), GetUserName(), GetUserRole());
 
         return NoContent();
     }

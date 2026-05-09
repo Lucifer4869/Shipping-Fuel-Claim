@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getShipments, createShipment, updateShipment, deleteShipment } from '../lib/api';
+import { getShipments, createShipment, updateShipment, deleteShipment, getWithdrawals, getFuelClaims } from '../lib/api';
 import toast from 'react-hot-toast';
-import { Plus, Truck, MapPin, Gauge, Calendar, X, Route, Navigation, Edit2, User, Phone, Trash2 } from 'lucide-react';
+import { Plus, Truck, MapPin, Gauge, Calendar, X, Route, Navigation, Edit2, User, Phone, Trash2, Banknote, Fuel } from 'lucide-react';
 import { LocationPicker } from '../components/LocationPicker';
+import RequestDetailModal from '../components/dashboard/RequestDetailModal';
 
 interface LocationData { address: string; lat: number; lng: number; }
 interface RouteInfo { distanceKm: number; durationText: string; }
@@ -40,6 +41,9 @@ export default function ShipmentsPage() {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [detailId, setDetailId] = useState<number | null>(null);
+  
+  // State for Request Detail Modal
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
 
   const resetForm = () => {
     setForm({ vehiclePlate: '', startMileage: '', senderName: '', senderPhone: '', receiverName: '', receiverPhone: '' });
@@ -75,6 +79,32 @@ export default function ShipmentsPage() {
     } catch {
       toast.error('ไม่สามารถโหลดข้อมูลได้');
     } finally { setLoading(false); }
+  };
+
+  const handleViewWithdrawals = async (shipmentId: number) => {
+    try {
+      const res = await getWithdrawals(shipmentId);
+      if (res.data.length > 0) {
+        setSelectedRequest(res.data[0]); // Show first one for now, or we could show a list
+      } else {
+        toast.error('ไม่พบรายการเบิกเงิน');
+      }
+    } catch {
+      toast.error('ไม่สามารถโหลดข้อมูลได้');
+    }
+  };
+
+  const handleViewClaims = async (shipmentId: number) => {
+    try {
+      const res = await getFuelClaims(shipmentId);
+      if (res.data.length > 0) {
+        setSelectedRequest(res.data[0]);
+      } else {
+        toast.error('ไม่พบรายการเคลมน้ำมัน');
+      }
+    } catch {
+      toast.error('ไม่สามารถโหลดข้อมูลได้');
+    }
   };
 
   const handleDelete = async (id: number, tripNumber: string) => {
@@ -166,7 +196,7 @@ export default function ShipmentsPage() {
           <table className="w-full">
             <thead className="bg-dark-900/50 border-b border-slate-700">
               <tr>
-                {['เลขที่เดินรถ', 'ทะเบียนรถ', 'คนขับ', 'ต้นทาง → ปลายทาง', 'ระยะทาง', 'สถานะ', 'วันที่', ''].map(h => (
+                {['เลขที่เดินรถ', 'ทะเบียนรถ', 'คนขับ', 'เบิกเงิน', 'เคลมน้ำมัน', 'ต้นทาง → ปลายทาง', 'ระยะทาง', 'สถานะ', 'วันที่', ''].map(h => (
                   <th key={h} className="table-header text-left">{h}</th>
                 ))}
               </tr>
@@ -175,7 +205,7 @@ export default function ShipmentsPage() {
               {loading ? (
                 [...Array(3)].map((_, i) => (
                   <tr key={i}>
-                    {[...Array(8)].map((_, j) => (
+                    {[...Array(10)].map((_, j) => (
                       <td key={j} className="table-cell">
                         <div className="h-4 bg-slate-700 rounded animate-pulse" />
                       </td>
@@ -184,7 +214,7 @@ export default function ShipmentsPage() {
                 ))
               ) : shipments.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="table-cell text-center text-slate-500 py-12">
+                  <td colSpan={10} className="table-cell text-center text-slate-500 py-12">
                     <Truck className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     ยังไม่มีข้อมูลการเดินรถ
                   </td>
@@ -199,6 +229,32 @@ export default function ShipmentsPage() {
                       <span className="badge bg-slate-700 text-slate-200">{s.vehiclePlate}</span>
                     </td>
                     <td className="table-cell text-slate-300">{s.driverName}</td>
+                    <td className="table-cell">
+                      {s.withdrawalCount > 0 ? (
+                        <button 
+                          onClick={() => handleViewWithdrawals(s.id)}
+                          className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 text-amber-400 rounded-lg hover:bg-amber-500/20 transition-all font-bold text-xs"
+                        >
+                          <Banknote className="w-3 h-3" />
+                          {s.withdrawalCount} รายการ
+                        </button>
+                      ) : (
+                        <span className="text-slate-600 text-xs">-</span>
+                      )}
+                    </td>
+                    <td className="table-cell">
+                      {s.fuelClaimCount > 0 ? (
+                        <button 
+                          onClick={() => handleViewClaims(s.id)}
+                          className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 text-emerald-400 rounded-lg hover:bg-emerald-500/20 transition-all font-bold text-xs"
+                        >
+                          <Fuel className="w-3 h-3" />
+                          {s.fuelClaimCount} รายการ
+                        </button>
+                      ) : (
+                        <span className="text-slate-600 text-xs">-</span>
+                      )}
+                    </td>
                     <td className="table-cell">
                       <div className="max-w-xs">
                         <div className="flex items-center gap-1 text-xs">
@@ -278,6 +334,15 @@ export default function ShipmentsPage() {
           </table>
         </div>
       </div>
+
+      {/* Detail Modal */}
+      {selectedRequest && (
+        <RequestDetailModal 
+          item={selectedRequest} 
+          onClose={() => setSelectedRequest(null)} 
+        />
+      )}
+
 
       {/* Detail Card */}
       {detailShipment && (

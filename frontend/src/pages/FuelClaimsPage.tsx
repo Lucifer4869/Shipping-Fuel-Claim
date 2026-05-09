@@ -1,24 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getFuelClaims, createFuelClaim, managerApproveFuelClaim, financeApproveFuelClaim, getShipments, uploadFile, deleteFuelClaim } from '../lib/api';
+import { getFuelClaims, createFuelClaim, managerApproveFuelClaim, financeApproveFuelClaim, getShipments, deleteFuelClaim, uploadFile } from '../lib/api';
 import toast from 'react-hot-toast';
-import { Plus, Fuel, CheckCircle, XCircle, X, Route, Upload, Trash2 } from 'lucide-react';
+import { Plus, Fuel, Clock, CheckCircle, XCircle, X, Trash2, Search, Filter, Eye, FileText, ImageIcon } from 'lucide-react';
+import RequestDetailModal from '../components/dashboard/RequestDetailModal';
 
 interface FuelClaim {
-  id: number; shipmentId: number; tripNumber: string; driverName: string;
+  id: number; shipmentId: number; tripNumber: string; driverName: string; vehiclePlate: string;
   claimAmount: number; receiptUrl?: string; mileageOut: number; mileageIn: number;
-  distance: number; status: string; 
+  status: string; origin: string; destination: string;
   managerName?: string; managerNote?: string; managerApprovedAt?: string;
   financeName?: string; financeNote?: string; financeApprovedAt?: string;
   createdAt: string;
 }
+
 interface Shipment { id: number; tripNumber: string; }
 
-const statusConfig: Record<string, { label: string; cls: string }> = {
-  Pending: { label: 'รอ Manager อนุมัติ', cls: 'bg-amber-500/20 text-amber-400' },
-  ApprovedByManager: { label: 'รอ Finance อนุมัติ', cls: 'bg-blue-500/20 text-blue-400' },
-  ApprovedByFinance: { label: 'อนุมัติสำเร็จ', cls: 'bg-emerald-500/20 text-emerald-400' },
-  Rejected: { label: 'ถูกปฏิเสธ', cls: 'bg-red-500/20 text-red-400' },
+const statusConfig: Record<string, { label: string; cls: string; icon: any }> = {
+  Pending: { label: 'รออนุมัติ (M)', cls: 'bg-amber-500/20 text-amber-400 border-amber-500/20', icon: Clock },
+  ApprovedByManager: { label: 'รอจ่ายเงิน (F)', cls: 'bg-blue-500/20 text-blue-400 border-blue-500/20', icon: Clock },
+  ApprovedByFinance: { label: 'จ่ายเงินแล้ว', cls: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20', icon: CheckCircle },
+  Rejected: { label: 'ปฏิเสธ', cls: 'bg-red-500/20 text-red-400 border-red-500/20', icon: XCircle },
 };
 
 export default function FuelClaimsPage() {
@@ -28,58 +30,64 @@ export default function FuelClaimsPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [approveModal, setApproveModal] = useState<{ id: number; type: 'manager' | 'finance' } | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<FuelClaim | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
   
-  const [form, setForm] = useState({ shipmentId: '', claimAmount: '', mileageOut: '', mileageIn: '' });
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  
+  const [form, setForm] = useState({ shipmentId: '', claimAmount: '', mileageOut: '', mileageIn: '', receiptUrl: '' });
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const fetchData = async () => {
     try {
       const [cRes, sRes] = await Promise.all([getFuelClaims(), getShipments()]);
       setClaims(cRes.data);
-      setShipments(sRes.data.filter((s: { status: string }) => s.status === 'Active'));
-    } catch { toast.error('ไม่สามารถโหลดข้อมูลได้'); }
-    finally { setLoading(false); }
+      setShipments(sRes.data.filter((s: any) => s.status === 'Active'));
+    } catch { 
+      toast.error('ไม่สามารถโหลดข้อมูลได้'); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   useEffect(() => { fetchData(); }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) return;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
     try {
-      await deleteFuelClaim(id);
-      toast.success('ลบรายการเรียบร้อย');
-      fetchData();
-    } catch { toast.error('ลบไม่สำเร็จ'); }
+      const res = await uploadFile(file);
+      setForm({ ...form, receiptUrl: res.data.url });
+      toast.success('อัปโหลดรูปภาพสำเร็จ');
+    } catch {
+      toast.error('อัปโหลดล้มเหลว');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (parseFloat(form.mileageIn) <= parseFloat(form.mileageOut)) {
-      toast.error('เลขไมล์กลับต้องมากกว่าเลขไมล์ไป'); return;
-    }
     setSubmitting(true);
     try {
-      let finalReceiptUrl = '';
-      if (receiptFile) {
-        const uploadRes = await uploadFile(receiptFile);
-        finalReceiptUrl = 'http://localhost:5000' + uploadRes.data.url;
-      }
-
       await createFuelClaim({
-        shipmentId: parseInt(form.shipmentId), claimAmount: parseFloat(form.claimAmount),
-        mileageOut: parseFloat(form.mileageOut), mileageIn: parseFloat(form.mileageIn),
-        receiptUrl: finalReceiptUrl || undefined
+        shipmentId: parseInt(form.shipmentId),
+        claimAmount: parseFloat(form.claimAmount),
+        mileageOut: parseFloat(form.mileageOut),
+        mileageIn: parseFloat(form.mileageIn),
+        receiptUrl: form.receiptUrl
       });
-      toast.success('ส่งรายการเคลมน้ำมันสำเร็จ!');
+      toast.success('ส่งคำขอเคลมน้ำมันสำเร็จ!');
       setShowModal(false);
-      setForm({ shipmentId: '', claimAmount: '', mileageOut: '', mileageIn: '' });
-      setReceiptFile(null);
+      setForm({ shipmentId: '', claimAmount: '', mileageOut: '', mileageIn: '', receiptUrl: '' });
       fetchData();
-    } catch { toast.error('เกิดข้อผิดพลาด'); }
-    finally { setSubmitting(false); }
+    } catch {
+      toast.error('เกิดข้อผิดพลาด');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleApprove = async (isApproved: boolean) => {
@@ -92,33 +100,89 @@ export default function FuelClaimsPage() {
         await financeApproveFuelClaim(approveModal.id, { isApproved, note });
       }
       toast.success(isApproved ? 'อนุมัติเรียบร้อย!' : 'ปฏิเสธเรียบร้อย');
-      setApproveModal(null); setNote('');
+      setApproveModal(null);
+      setNote('');
       fetchData();
-    } catch { toast.error('เกิดข้อผิดพลาด'); }
-    finally { setSubmitting(false); }
+    } catch {
+      toast.error('ดำเนินการไม่สำเร็จ');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('คุณต้องการลบรายการนี้ใช่หรือไม่?')) return;
+    try {
+      await deleteFuelClaim(id);
+      toast.success('ลบรายการเรียบร้อย');
+      fetchData();
+    } catch {
+      toast.error('ลบไม่สำเร็จ');
+    }
+  };
+
+  const filtered = claims.filter(c => {
+    const matchesSearch = 
+      c.tripNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.driverName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.vehiclePlate?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'All' || c.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">เคลมน้ำมัน</h1>
-          <p className="text-slate-400 text-sm mt-0.5">จัดการรายการเคลมค่าน้ำมัน</p>
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+            <Fuel className="w-7 h-7 text-emerald-400" /> เคลมน้ำมัน
+          </h1>
+          <p className="text-slate-400 text-sm mt-0.5">ตรวจสอบและจัดการรายการเคลมน้ำมัน</p>
         </div>
         {user?.role === 'Driver' && (
-          <button id="new-claim-btn" onClick={() => setShowModal(true)} className="btn-primary">
+          <button onClick={() => setShowModal(true)} className="btn-primary">
             <Plus className="w-4 h-4" /> เคลมน้ำมัน
           </button>
         )}
       </div>
 
+      {/* Filters */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <input
+            type="text"
+            placeholder="ค้นหา เลขที่เดินรถ, ชื่อคนขับ, ทะเบียน..."
+            className="input-field pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="relative">
+          <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <select
+            className="input-field pl-10 appearance-none"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="All">ทุกสถานะ</option>
+            <option value="Pending">รออนุมัติ (M)</option>
+            <option value="ApprovedByManager">รอจ่ายเงิน (F)</option>
+            <option value="ApprovedByFinance">จ่ายเงินแล้ว</option>
+            <option value="Rejected">ถูกปฏิเสธ</option>
+          </select>
+        </div>
+      </div>
+
       <div className="card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-left">
             <thead className="bg-dark-900/50 border-b border-slate-700">
               <tr>
-                {['เลขที่เดินรถ', 'คนขับ', 'จำนวน', 'ระยะทาง', 'ใบเสร็จ', 'สถานะ', 'การดำเนินการ'].map(h => (
-                  <th key={h} className="table-header text-left">{h}</th>
+                {['เลขที่เดินรถ', 'คนขับ', 'จำนวนเงิน', 'ระยะทาง', 'สถานะ', 'วันที่', ''].map(h => (
+                  <th key={h} className="table-header">{h}</th>
                 ))}
               </tr>
             </thead>
@@ -129,117 +193,134 @@ export default function FuelClaimsPage() {
                     <td key={j} className="table-cell"><div className="h-4 bg-slate-700 rounded animate-pulse" /></td>
                   ))}</tr>
                 ))
-              ) : claims.length === 0 ? (
+              ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="table-cell text-center text-slate-500 py-12">
-                  <Fuel className="w-8 h-8 mx-auto mb-2 opacity-30" />ยังไม่มีรายการ
+                  <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />ยังไม่มีรายการ
                 </td></tr>
               ) : (
-                claims.map(c => (
-                  <tr key={c.id} className="hover:bg-slate-700/20 transition-colors">
-                    <td className="table-cell"><span className="font-mono text-primary-400">{c.tripNumber}</span></td>
-                    <td className="table-cell text-slate-300">{c.driverName}</td>
-                    <td className="table-cell"><span className="font-semibold text-emerald-400">฿{c.claimAmount.toLocaleString()}</span></td>
-                    <td className="table-cell">
-                      <div className="flex items-center gap-1 text-xs text-slate-400">
-                        <Route className="w-3 h-3" />
-                        {(c.mileageIn - c.mileageOut).toLocaleString()} กม.
-                      </div>
-                    </td>
-                    <td className="table-cell">
-                      {c.receiptUrl ? (
-                        <a href={c.receiptUrl} target="_blank" rel="noreferrer"
-                          className="text-xs text-primary-400 hover:text-primary-300 underline">ดูใบเสร็จ</a>
-                      ) : <span className="text-xs text-slate-600">-</span>}
-                    </td>
-                    <td className="table-cell">
-                      <span className={`badge ${statusConfig[c.status]?.cls}`}>{statusConfig[c.status]?.label}</span>
-                    </td>
-                    <td className="table-cell">
-                      <div className="flex items-center gap-1">
-                        {(user?.role === 'Manager' || user?.role === 'Admin') && (
-                          <button onClick={() => setApproveModal({ id: c.id, type: 'manager' })}
-                            className="btn-primary text-xs py-1 px-3">
-                            {c.status === 'Pending' ? 'อนุมัติ/ปฏิเสธ' : 'เปลี่ยนสถานะ (M)'}
+                filtered.map(c => {
+                  const status = statusConfig[c.status] || { label: c.status, cls: 'bg-slate-800 text-slate-400', icon: Clock };
+                  const StatusIcon = status.icon;
+                  return (
+                    <tr key={c.id} className="hover:bg-slate-700/20 transition-colors">
+                      <td className="table-cell"><span className="font-mono text-primary-400 font-bold">{c.tripNumber}</span></td>
+                      <td className="table-cell">
+                        <p className="text-slate-200 text-sm">{c.driverName}</p>
+                        <p className="text-[10px] text-slate-500">{c.vehiclePlate}</p>
+                      </td>
+                      <td className="table-cell"><span className="font-bold text-white text-lg">฿{c.claimAmount.toLocaleString()}</span></td>
+                      <td className="table-cell">
+                        <div className="text-xs text-slate-400">
+                           {c.mileageIn - c.mileageOut} กม.
+                           <span className="block text-[10px] opacity-50">({c.mileageOut} → {c.mileageIn})</span>
+                        </div>
+                      </td>
+                      <td className="table-cell">
+                        <span className={`badge flex items-center gap-1.5 w-fit ${status.cls}`}>
+                          <StatusIcon className="w-3.5 h-3.5" />
+                          {status.label}
+                        </span>
+                      </td>
+                      <td className="table-cell text-xs text-slate-500">{new Date(c.createdAt).toLocaleDateString('th-TH')}</td>
+                      <td className="table-cell">
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => setSelectedRequest(c)} className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-colors" title="ดูรายละเอียด">
+                            <Eye className="w-4 h-4" />
                           </button>
-                        )}
-                        {(user?.role === 'Finance' || user?.role === 'Admin') && (c.status === 'ApprovedByManager' || c.status === 'ApprovedByFinance' || c.status === 'Rejected') && (
-                          <button onClick={() => setApproveModal({ id: c.id, type: 'finance' })}
-                            className="btn-success text-xs py-1 px-3">
-                            {c.status === 'ApprovedByManager' ? 'ยืนยัน (F)' : 'เปลี่ยนสถานะ (F)'}
-                          </button>
-                        )}
-                        {user?.role === 'Admin' && (
-                          <button onClick={() => handleDelete(c.id)}
-                            className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors" title="ลบรายการ">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          {(user?.role === 'Manager' || user?.role === 'Admin') && c.status === 'Pending' && (
+                            <button onClick={() => setApproveModal({ id: c.id, type: 'manager' })} className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-white transition-colors" title="อนุมัติ/ปฏิเสธ">
+                              <CheckCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                          {(user?.role === 'Finance' || user?.role === 'Admin') && c.status === 'ApprovedByManager' && (
+                            <button onClick={() => setApproveModal({ id: c.id, type: 'finance' })} className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500 hover:text-white transition-colors" title="ยืนยันการจ่ายเงิน">
+                              <CheckCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                          {user?.role === 'Admin' && (
+                            <button onClick={() => handleDelete(c.id)} className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-colors" title="ลบรายการ">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
+      {/* Shared Detail Modal */}
+      {selectedRequest && (
+        <RequestDetailModal 
+          item={selectedRequest} 
+          onClose={() => setSelectedRequest(null)} 
+        />
+      )}
+
       {/* Create Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="card w-full max-w-md p-6 animate-slideIn">
+          <div className="card w-full max-w-md p-6 animate-slideIn max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-white">เคลมน้ำมัน</h3>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="label">เลขที่เดินรถ</label>
+                <label className="label">เลขที่เดินรถ (กำลังดำเนินการ)</label>
                 <select className="input-field" value={form.shipmentId} onChange={e => setForm({ ...form, shipmentId: e.target.value })} required>
                   <option value="">เลือกเลขที่เดินรถ</option>
                   {shipments.map(s => <option key={s.id} value={s.id}>{s.tripNumber}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">จำนวนเงิน (บาท)</label>
+                <input type="number" className="input-field" placeholder="0.00" value={form.claimAmount}
+                  onChange={e => setForm({ ...form, claimAmount: e.target.value })} required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label">เลขไมล์ขาไป</label>
-                  <input type="number" className="input-field" placeholder="0" value={form.mileageOut}
+                  <input type="number" className="input-field" value={form.mileageOut}
                     onChange={e => setForm({ ...form, mileageOut: e.target.value })} required />
                 </div>
                 <div>
                   <label className="label">เลขไมล์ขากลับ</label>
-                  <input type="number" className="input-field" placeholder="0" value={form.mileageIn}
+                  <input type="number" className="input-field" value={form.mileageIn}
                     onChange={e => setForm({ ...form, mileageIn: e.target.value })} required />
                 </div>
               </div>
-              {form.mileageOut && form.mileageIn && (
-                <div className="bg-emerald-500/10 rounded-xl px-4 py-2 text-sm text-emerald-400">
-                  ระยะทาง: {Math.max(0, parseFloat(form.mileageIn) - parseFloat(form.mileageOut)).toLocaleString()} กม.
-                </div>
-              )}
               <div>
-                <label className="label">จำนวนเงินที่เคลม (บาท)</label>
-                <input type="number" step="0.01" className="input-field" placeholder="0.00" value={form.claimAmount}
-                  onChange={e => setForm({ ...form, claimAmount: e.target.value })} required />
-              </div>
-              <div>
-                <label className="label">อัปโหลดรูปใบเสร็จ (ถ้ามี)</label>
-                <div className="relative">
-                  <input type="file" accept="image/*" className="hidden" id="receipt-upload"
-                    onChange={e => setReceiptFile(e.target.files?.[0] || null)} />
-                  <label htmlFor="receipt-upload" className="input-field flex items-center justify-between cursor-pointer hover:bg-slate-700/50">
-                    <span className={receiptFile ? 'text-emerald-400' : 'text-slate-500'}>
-                      {receiptFile ? receiptFile.name : 'คลิกเพื่อเลือกไฟล์รูปภาพ...'}
-                    </span>
-                    <Upload className="w-4 h-4 text-slate-400" />
+                <label className="label">หลักฐานใบเสร็จ</label>
+                <div className="mt-1 flex items-center gap-4">
+                  <label className="flex-1">
+                    <div className="relative group cursor-pointer">
+                      <div className="input-field py-8 border-dashed border-2 flex flex-col items-center justify-center gap-2 group-hover:border-primary-500 transition-colors">
+                        {uploading ? (
+                          <div className="w-8 h-8 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin" />
+                        ) : form.receiptUrl ? (
+                          <img src={form.receiptUrl} alt="Preview" className="h-20 object-contain rounded" />
+                        ) : (
+                          <>
+                            <ImageIcon className="w-8 h-8 text-slate-500" />
+                            <span className="text-xs text-slate-500">คลิกเพื่ออัปโหลดใบเสร็จ</span>
+                          </>
+                        )}
+                      </div>
+                      <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                    </div>
                   </label>
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1 justify-center">ยกเลิก</button>
-                <button type="submit" disabled={submitting} className="btn-primary flex-1 justify-center">
+                <button type="submit" disabled={submitting || uploading} className="btn-primary flex-1 justify-center">
                   {submitting ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : null}
-                  ส่งรายการ
+                  ส่งคำขอ
                 </button>
               </div>
             </form>
@@ -252,7 +333,7 @@ export default function FuelClaimsPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="card w-full max-w-sm p-6 animate-slideIn">
             <h3 className="text-lg font-semibold text-white mb-4">
-              {approveModal.type === 'manager' ? 'Manager' : 'Finance'} — ดำเนินการเคลมน้ำมัน
+              {approveModal.type === 'manager' ? 'Manager' : 'Finance'} — ดำเนินการ
             </h3>
             <div className="mb-4">
               <label className="label">หมายเหตุ (ถ้ามี)</label>
