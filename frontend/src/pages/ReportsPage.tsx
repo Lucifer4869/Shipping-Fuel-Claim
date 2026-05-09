@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getShipments, getWithdrawals, getFuelClaims } from '../lib/api';
+import { getShipments, getWithdrawals, getFuelClaims, getOilPrice } from '../lib/api';
 import { 
   Filter, BarChart3, Printer, 
   Info
@@ -82,32 +82,17 @@ export default function ReportsPage() {
   }, [startDate, endDate]);
 
   useEffect(() => {
-    const fetchOilPrice = async () => {
+    const fetchOilPriceData = async () => {
       try {
-        // ดึงข้อมูลจาก Kapook (รวบรวมราคาน้ำมัน) ผ่าน Proxy
-        const targetUrl = encodeURIComponent('https://gasprice.kapook.com/gasprice.php');
-        const response = await fetch(`https://api.allorigins.win/get?url=${targetUrl}`);
-        const json = await response.json();
-        const html = json.contents;
-        
-        // ค้นหาค่าน้ำมันของ PTT โดยเฉพาะ
-        // ในหน้า Kapook จะมีตารางที่ระบุราคาน้ำมันแต่ละยี่ห้อ
-        // เราจะหาช่องที่เขียนว่า "ปตท." และดึงค่า "ดีเซล" ออกมา
-        const pttSection = html.match(/ปตท\.([\s\S]*?)<\/table>/);
-        if (pttSection) {
-          const prices = pttSection[0].match(/<td[^>]*>([\d.]+)<\/td>/g);
-          if (prices && prices.length > 0) {
-            // ปกติใน Kapook ราคาน้ำมันดีเซลมักจะเป็นลำดับต้นๆ ในตารางยี่ห้อ
-            // หรือใช้ Regex เจาะจงราคาที่คุณระบุมา (41.23) หากพบในหน้าเว็บ
-            const pttDiesel = prices.map((p: string) => p.replace(/<[^>]*>/g, '')).find((p: string) => p === '41.23') || prices[0].replace(/<[^>]*>/g, '');
-            setOilRate(pttDiesel);
-          }
+        const res = await getOilPrice();
+        if (res.data && res.data.price) {
+          setOilRate(res.data.price.toString());
         }
       } catch (err) {
-        console.error('Failed to fetch PTT oil price from Kapook:', err);
+        console.error('Failed to fetch oil price from backend:', err);
       }
     };
-    fetchOilPrice();
+    fetchOilPriceData();
   }, []);
 
   const handlePrint = () => {
@@ -160,7 +145,7 @@ export default function ReportsPage() {
             <div className="p-2 bg-primary-500/10 rounded-xl">
               <BarChart3 className="w-6 h-6 text-primary-400" />
             </div>
-            ออกรายงานสรุปประจำวัน
+            ออกรายงานสรุปยอดการจ่ายประจำวัน
           </h1>
           <p className="text-slate-400 text-sm mt-1">สร้างรายงานสรุปการทดลองจ่ายในรูปแบบตารางบัญชี</p>
         </div>
@@ -218,7 +203,7 @@ export default function ReportsPage() {
 
           <div className="card overflow-hidden bg-white text-black p-8 print-area">
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold mb-4">สรุปทดลองจ่ายแผนประจำวัน</h2>
+              <h2 className="text-xl font-bold mb-4">สรุปยอดการจ่ายประจำวัน</h2>
               <div className="text-sm mb-4 hidden print:block">
                 ประจำวันที่ {formatDateAD(startDate)} ถึง {formatDateAD(endDate)}
               </div>
@@ -306,7 +291,7 @@ export default function ReportsPage() {
                       <td className="border border-black text-[9px] py-1">{idx + 1}</td>
                       <td className="border border-black text-[9px] py-1 font-mono">{item.tripNumber}</td>
                       <td className="border border-black text-[9px] py-1">{item.driverName}</td>
-                      <td className="border border-black text-[9px] py-1 text-left px-2">เบี้ยเลี้ยง / เงินทดลองจ่าย</td>
+                      <td className="border border-black text-[9px] py-1 text-left px-2">เบิก/เคลมน้ำมัน</td>
                       <td className="border border-black text-[9px] py-1 text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
                       <td className="border border-black text-[9px] py-1 text-emerald-700 font-bold">อนุมัติจ่ายแล้ว</td>
                     </tr>

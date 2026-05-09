@@ -36,6 +36,7 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<AuditService>();
 
 // Controllers
+builder.Services.AddHttpClient();
 builder.Services.AddControllers();
 
 // CORS for React frontend

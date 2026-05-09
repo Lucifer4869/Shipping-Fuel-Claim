@@ -75,5 +75,6 @@ export const getUsers = () => api.get('/users');
 export const createUser = (data: object) => api.post('/users', data);
 export const updateUser = (id: number, data: object) => api.put(`/users/${id}`, data);
 export const deleteUser = (id: number) => api.delete(`/users/${id}`);
+export const getOilPrice = () => api.get('/externaldata/oil-price');
 
 export default api;
