@@ -81,6 +81,25 @@ export default function ReportsPage() {
     fetchData();
   }, [startDate, endDate]);
 
+  useEffect(() => {
+    const fetchOilPrice = async () => {
+      try {
+        const response = await fetch('https://oil-price.bangchak.co.th/ApiOilPrice2/th');
+        const data = await response.json();
+        if (data && data[0] && data[0].OilList) {
+          const oilList = JSON.parse(data[0].OilList);
+          const diesel = oilList.find((oil: any) => oil.OilName.includes('ดีเซล') && !oil.OilName.includes('พรีเมียม') && !oil.OilName.includes('B20'));
+          if (diesel) {
+            setOilRate(diesel.PriceToday.toString());
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch oil price:', err);
+      }
+    };
+    fetchOilPrice();
+  }, []);
+
   const handlePrint = () => {
     window.print();
   };
@@ -189,7 +208,7 @@ export default function ReportsPage() {
 
           <div className="card overflow-hidden bg-white text-black p-8 print-area">
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold mb-4">สรุปทดลองจ่ายแผน LH ประจำวัน</h2>
+              <h2 className="text-xl font-bold mb-4">สรุปทดลองจ่ายแผนประจำวัน</h2>
               <div className="text-sm mb-4 hidden print:block">
                 ประจำวันที่ {formatDateAD(startDate)} ถึง {formatDateAD(endDate)}
               </div>
@@ -325,7 +344,7 @@ export default function ReportsPage() {
                 <p className="text-[10px]">วันที่ ....../....../......</p>
               </div>
               <div className="space-y-12">
-                <p className="text-xs font-bold text-red-600 underline">ผู้อนุมัติจ่ายเงิน..............................................</p>
+                <p className="text-xs ">ผู้อนุมัติจ่ายเงิน..............................................</p>
                 <p className="text-xs font-bold">( .................................................. )</p>
                 <p className="text-[10px]">วันที่ ....../....../......</p>
               </div>
