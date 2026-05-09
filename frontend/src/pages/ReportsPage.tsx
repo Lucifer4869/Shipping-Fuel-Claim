@@ -205,8 +205,8 @@ export default function ReportsPage() {
                   <th className="border border-black text-[10px]">ชื่อ พขร.</th>
                   <th className="border border-black text-[10px]">เลขที่บัญชี</th>
                   <th className="border border-black text-[10px]">จำนวนน้ำมัน / ลิตร</th>
-                  <th className="border border-black text-[10px]">ค่าน้ำมันทั้งสิ้น / บาท</th>
-                  <th className="border border-black text-[10px]">ค่าเบี้ยเลี้ยง วันวิ่ง</th>
+                  <th className="border border-black text-[10px]">เคลมน้ำมัน</th>
+                  <th className="border border-black text-[10px]">ขอเบิกเงิน</th>
                   <th className="border border-black text-[10px] bg-summary">รวมทั้งสิ้น</th>
                 </tr>
               </thead>
