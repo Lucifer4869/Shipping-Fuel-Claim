@@ -43,7 +43,7 @@ export default function Layout({ children }: Props) {
       {/* Sidebar */}
       <aside className="w-64 bg-dark-800 border-r border-slate-700/50 flex flex-col">
         {/* Logo */}
-        <div className="p-6 border-b border-slate-700/50 bg-dark-900/20">
+        <div className="p-6 border-b border-slate-700/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
               <Truck className="w-5 h-5 text-white" />
@@ -56,20 +56,20 @@ export default function Layout({ children }: Props) {
         </div>
 
         {/* User info & Logout (Moved to Top) */}
-        <div className="p-4 border-b border-slate-700/50 bg-dark-900/50">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-700/30 mb-3 border border-slate-700/50">
+        <div className="p-4 border-b border-slate-700/50 bg-dark-900/20">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-700/30 mb-2 border border-slate-700/50">
             <div className={`w-8 h-8 ${roleColors[user?.role ?? '']} rounded-lg flex items-center justify-center flex-shrink-0 shadow-inner`}>
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">{user?.fullName}</p>
-              <p className="text-[10px] text-slate-400 uppercase tracking-tighter">{roleLabels[user?.role ?? '']}</p>
+              <p className="text-xs font-bold text-white truncate">{user?.fullName}</p>
+              <p className="text-[9px] text-slate-400 uppercase tracking-tighter">{roleLabels[user?.role ?? '']}</p>
             </div>
           </div>
           <button
             id="logout-btn"
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-red-400 hover:text-white hover:bg-red-600/20 rounded-xl transition-all border border-transparent hover:border-red-600/30"
+            className="w-full flex items-center gap-3 px-3 py-2 text-xs font-bold text-red-400 hover:text-white hover:bg-red-600/20 rounded-lg transition-all border border-transparent hover:border-red-600/30"
           >
             <LogOut className="w-3.5 h-3.5" />
             ออกจากระบบ
@@ -133,6 +133,7 @@ export default function Layout({ children }: Props) {
             </div>
           )}
         </nav>
+
       </aside>
 
       {/* Main content */}
