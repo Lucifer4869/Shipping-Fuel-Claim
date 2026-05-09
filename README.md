@@ -124,6 +124,28 @@
 
 ---
 
+## 📡 API Endpoints (สรุปรายการ API)
+
+| หมวดหมู่ | Method | Endpoint | คำอธิบาย | สิทธิ์ (Role) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Auth** | POST | `/api/auth/login` | เข้าสู่ระบบด้วยบัญชีปกติ | ทุกคน |
+| | POST | `/api/auth/google-login` | เข้าสู่ระบบด้วย Google | ทุกคน |
+| **Shipments**| GET | `/api/shipments` | ดูรายการเดินรถทั้งหมด | ทุกคน |
+| | POST | `/api/shipments` | สร้างรายการเดินรถใหม่ | Driver/Admin |
+| | PATCH | `/api/shipments/{id}/complete`| ปิดงานและบันทึกเลขไมล์ | Driver/Admin |
+| | DELETE | `/api/shipments/{id}` | ลบรายการเดินรถ | Admin |
+| **Finance** | POST | `/api/withdrawals` | ส่งขอเบิกเงินล่วงหน้า | Driver/Admin |
+| | PATCH | `/api/withdrawals/{id}/approve` | Manager อนุมัติเบิกเงิน | Manager/Admin |
+| | PATCH | `/api/withdrawals/{id}/finance-approve` | Finance อนุมัติเบิกเงิน | Finance/Admin |
+| **Claims** | POST | `/api/claims` | ส่งเคลมค่าน้ำมัน | Driver/Admin |
+| | PATCH | `/api/claims/{id}/approve` | Manager อนุมัติเคลม | Manager/Admin |
+| | PATCH | `/api/claims/{id}/finance-approve` | Finance อนุมัติเคลม | Finance/Admin |
+| **Admin** | GET | `/api/users` | ดูรายชื่อพนักงานทั้งหมด | Admin |
+| | GET | `/api/audit-logs` | ดูประวัติการแก้ไขข้อมูล | Admin |
+| **Uploads** | POST | `/api/uploads` | อัปโหลดรูปภาพใบเสร็จ | ทุกคน |
+
+---
+
 ## 🔐 ข้อมูลบัญชีทดสอบ
 | Role | Username | Password |
 |------|----------|----------|
