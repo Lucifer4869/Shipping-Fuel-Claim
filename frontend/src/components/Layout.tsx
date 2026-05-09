@@ -56,44 +56,78 @@ export default function Layout({ children }: Props) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
-                ${isActive
-                  ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <item.icon className="w-4 h-4 flex-shrink-0" />
-                  <span className="flex-1">{item.label}</span>
-                  {isActive && <ChevronRight className="w-3 h-3" />}
-                </>
-              )}
-            </NavLink>
-          ))}
+        <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+          {/* General Menu */}
+          <div className="space-y-1">
+            {navItems.filter(item => !['/users', '/audit-logs'].includes(item.to)).map(item => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
+                  ${isActive
+                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/20'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <item.icon className="w-4 h-4 flex-shrink-0" />
+                    <span className="flex-1">{item.label}</span>
+                    {isActive && <ChevronRight className="w-3 h-3" />}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </div>
+
+          {/* Admin Section (Only for Admin) */}
+          {user?.role === 'Admin' && (
+            <div className="pt-4 border-t border-slate-700/50 space-y-2">
+              <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                ผู้ดูแลระบบ (Admin)
+              </p>
+              <div className="space-y-1">
+                {navItems.filter(item => ['/users', '/audit-logs'].includes(item.to)).map(item => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group
+                      ${isActive
+                        ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'}`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <item.icon className="w-4 h-4 flex-shrink-0" />
+                        <span className="flex-1">{item.label}</span>
+                        {isActive && <ChevronRight className="w-3 h-3" />}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          )}
         </nav>
 
-        {/* User info */}
-        <div className="p-4 border-t border-slate-700/50">
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-700/30 mb-2">
-            <div className={`w-8 h-8 ${roleColors[user?.role ?? '']} rounded-lg flex items-center justify-center flex-shrink-0`}>
+        {/* User info & Logout */}
+        <div className="p-4 border-t border-slate-700/50 bg-dark-900/50">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-700/30 mb-3 border border-slate-700/50">
+            <div className={`w-8 h-8 ${roleColors[user?.role ?? '']} rounded-lg flex items-center justify-center flex-shrink-0 shadow-inner`}>
               <User className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.fullName}</p>
-              <p className="text-xs text-slate-400">{roleLabels[user?.role ?? '']}</p>
+              <p className="text-sm font-bold text-white truncate">{user?.fullName}</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-tighter">{roleLabels[user?.role ?? '']}</p>
             </div>
           </div>
           <button
             id="logout-btn"
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-red-400 hover:text-white hover:bg-red-600/20 rounded-xl transition-all border border-transparent hover:border-red-600/30"
           >
             <LogOut className="w-4 h-4" />
             ออกจากระบบ

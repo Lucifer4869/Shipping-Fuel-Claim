@@ -20,37 +20,28 @@ public class ExternalDataController : ControllerBase
         try
         {
             var client = _httpClientFactory.CreateClient();
-            // ดึงจากแหล่งข้อมูลกลางที่รวบรวมราคาน้ำมัน
             var response = await client.GetAsync("https://gasprice.kapook.com/gasprice.php");
             
             if (response.IsSuccessStatusCode)
             {
                 var html = await response.Content.ReadAsStringAsync();
                 
-                // ค้นหาส่วนของ ปตท. และดึงราคาดีเซล
-                // เราจะใช้ Regex ค้นหาตัวเลข 41.23 หรือราคาล่าสุดที่อยู่ในกลุ่ม ปตท.
-                var pttSectionMatch = System.Text.RegularExpressions.Regex.Match(html, @"ปตท\.([\s\S]*?)<\/table>");
+                // ค้นหาในส่วน <article class="gasprice ptt">
+                var pttSectionMatch = System.Text.RegularExpressions.Regex.Match(html, @"<article class=""gasprice ptt"">([\s\S]*?)<\/article>");
                 if (pttSectionMatch.Success)
                 {
                     var pttSection = pttSectionMatch.Groups[1].Value;
-                    var priceMatches = System.Text.RegularExpressions.Regex.Matches(pttSection, @"<td[^>]*>([\d.]+)<\/td>");
+                    // หาค่าราคาน้ำมันดีเซล <li><span>ดีเซล</span><em>([\d.]+)</em></li>
+                    var priceMatch = System.Text.RegularExpressions.Regex.Match(pttSection, @"ดีเซล<\/span><em>([\d.]+)<\/em>");
                     
-                    if (priceMatches.Count > 0)
+                    if (priceMatch.Success)
                     {
-                        // พยายามหาค่า 41.23 หรือค่าแรกที่พบในตาราง ปตท.
-                        string? targetPrice = null;
-                        foreach (System.Text.RegularExpressions.Match m in priceMatches)
-                        {
-                            var p = m.Groups[1].Value;
-                            if (p == "41.23") { targetPrice = p; break; }
-                        }
-                        
-                        targetPrice ??= priceMatches[0].Groups[1].Value;
+                        var targetPrice = priceMatch.Groups[1].Value;
                         return Ok(new { price = decimal.Parse(targetPrice) });
                     }
                 }
             }
-            return BadRequest("ไม่สามารถดึงข้อมูลราคาน้ำมัน PTT ได้");
+            return BadRequest("ไม่สามารถดึงข้อมูลราคาน้ำมัน PTT จาก Kapook ได้");
         }
         catch (Exception ex)
         {
