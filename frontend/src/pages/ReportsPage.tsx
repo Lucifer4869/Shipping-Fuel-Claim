@@ -15,14 +15,8 @@ const formatDateAD = (date: Date | string) => {
 };
 
 export default function ReportsPage() {
-  const [startDate, setStartDate] = useState(() => {
-    const d = new Date();
-    return d.toISOString().split('T')[0];
-  });
-  const [endDate, setEndDate] = useState(() => {
-    const d = new Date();
-    return d.toISOString().split('T')[0];
-  });
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [reportDate, setReportDate] = useState(formatDateAD(new Date()));
   
   const [reportData, setReportData] = useState<any[]>([]);
@@ -36,10 +30,8 @@ export default function ReportsPage() {
         getFuelClaims()
       ]);
 
-      // Normalize dates for local comparison
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0);
-      
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
@@ -49,7 +41,6 @@ export default function ReportsPage() {
       });
 
       const mapped = filteredShipments.map((s: any) => {
-        // Only sum approved amounts for the financial report
         const sWithdrawals = wRes.data.filter((w: any) => 
           w.shipmentId === s.id && (w.status === 'ApprovedByFinance' || w.status === 'ApprovedByManager')
         );
@@ -76,11 +67,9 @@ export default function ReportsPage() {
       });
 
       setReportData(mapped);
-      
       const fuelSum = mapped.reduce((sum: number, item: any) => sum + item.fuelAmount, 0);
       const allowSum = mapped.reduce((sum: number, item: any) => sum + item.allowance, 0);
       setTotals({ fuel: fuelSum, allowance: allowSum, grandTotal: fuelSum + allowSum });
-
     } catch (error) {
       console.error('Fetch error:', error);
       toast.error('ไม่สามารถโหลดข้อมูลรายงานได้');
@@ -94,6 +83,27 @@ export default function ReportsPage() {
   const handlePrint = () => {
     window.print();
   };
+
+  // Custom Input Component to force dd/mm/yyyy display
+  const CustomDateInput = ({ label, value, onChange }: { label: string, value: string, onChange: (val: string) => void }) => (
+    <div className="space-y-1.5 relative">
+      <label className="label text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+        <Filter className="w-3 h-3" /> {label}
+      </label>
+      <div className="relative">
+        <input 
+          type="date" 
+          className="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <div className="input-field flex items-center justify-between pointer-events-none bg-slate-800/40 border-slate-700/50">
+          <span className="text-sm text-white">{formatDateAD(value)}</span>
+          <Printer className="w-4 h-4 text-slate-500" />
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-6 animate-fadeIn pb-20">
@@ -136,19 +146,15 @@ export default function ReportsPage() {
           <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-2">
             <Filter className="w-4 h-4" /> ตั้งค่ารายงาน
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
+            <CustomDateInput label="วันที่เริ่มต้น" value={startDate} onChange={setStartDate} />
+            <CustomDateInput label="วันที่สิ้นสุด" value={endDate} onChange={setEndDate} />
+            
             <div>
-              <label className="label text-xs">ช่วงวันที่ข้อมูล</label>
-              <div className="grid grid-cols-1 gap-2">
-                <input type="date" className="input-field text-sm" value={startDate} onChange={e => setStartDate(e.target.value)} />
-                <input type="date" className="input-field text-sm" value={endDate} onChange={e => setEndDate(e.target.value)} />
-              </div>
-            </div>
-            <div>
-              <label className="label text-xs">วันที่แสดงบนหัวรายงาน</label>
+              <label className="label text-xs font-bold text-slate-500 uppercase tracking-widest">วันที่แสดงบนหัวรายงาน</label>
               <input type="text" className="input-field text-sm" value={reportDate} onChange={e => setReportDate(e.target.value)} />
             </div>
-            <button onClick={fetchData} className="btn-secondary w-full text-sm py-2">อัปเดตข้อมูล</button>
+            <button onClick={fetchData} className="btn-secondary w-full text-sm py-2.5 mt-2">อัปเดตข้อมูล</button>
           </div>
         </div>
 
