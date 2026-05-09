@@ -10,7 +10,6 @@ export default function ReportsPage() {
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [reportDate, setReportDate] = useState(new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' }));
-  const [oilPrice, setOilPrice] = useState('32.94');
   
   const [reportData, setReportData] = useState<any[]>([]);
   const [totals, setTotals] = useState({ fuel: 0, allowance: 0, grandTotal: 0 });
@@ -27,13 +26,11 @@ export default function ReportsPage() {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
-      // Filter shipments in range
       const filteredShipments = sRes.data.filter((s: any) => {
         const date = new Date(s.createdAt);
         return date >= start && date <= end;
       });
 
-      // Map data to the Excel-like format
       const mapped = filteredShipments.map((s: any) => {
         const sWithdrawals = wRes.data.filter((w: any) => w.shipmentId === s.id && w.status === 'ApprovedByFinance');
         const sClaims = cRes.data.filter((c: any) => c.shipmentId === s.id && c.status === 'ApprovedByFinance');
@@ -48,8 +45,8 @@ export default function ReportsPage() {
           vehiclePlate: s.vehiclePlate,
           plan: `${s.origin} - ${s.destination}`,
           driverName: s.driverName,
-          bankAccount: '-', // Placeholder as per current schema
-          fuelLitre: '-', // Placeholder
+          bankAccount: '-', 
+          fuelLitre: '-', 
           fuelAmount: fuelTotal,
           allowance: allowanceTotal,
           total: fuelTotal + allowanceTotal
@@ -128,10 +125,6 @@ export default function ReportsPage() {
               <label className="label text-xs">วันที่แสดงบนหัวรายงาน</label>
               <input type="text" className="input-field text-sm" value={reportDate} onChange={e => setReportDate(e.target.value)} />
             </div>
-            <div>
-              <label className="label text-xs">อัตราน้ำมันประจำวัน</label>
-              <input type="text" className="input-field text-sm" value={oilPrice} onChange={e => setOilPrice(e.target.value)} />
-            </div>
             <button onClick={fetchData} className="btn-secondary w-full text-sm py-2">อัปเดตข้อมูล</button>
           </div>
         </div>
@@ -158,15 +151,6 @@ export default function ReportsPage() {
                   <span className="font-bold text-sm">วันที่จัดทำ :</span>
                   <span className="text-sm text-red-600 font-bold">{reportDate}</span>
                 </div>
-              </div>
-              <div className="flex justify-start">
-                <div className="border border-black border-t-0 px-4 py-1 w-64 flex justify-between bg-gray-50">
-                  <span className="font-bold text-sm">อัตราน้ำมันประจำวัน :</span>
-                  <span className="text-sm font-bold">{oilPrice}</span>
-                </div>
-              </div>
-              <div className="flex justify-start mt-2">
-                <span className="text-[10px] text-blue-600 underline">https://www.pttor.com/th/oil_price</span>
               </div>
             </div>
 
