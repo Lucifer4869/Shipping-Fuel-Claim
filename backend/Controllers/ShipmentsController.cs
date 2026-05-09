@@ -223,10 +223,14 @@ public class ShipmentsController : ControllerBase
     public async Task<IActionResult> CompleteShipment(int id, [FromBody] double endMileage)
     {
         var userId = GetUserId();
+        var role = GetUserRole();
         var shipment = await _db.Shipments.FindAsync(id);
 
         if (shipment == null) return NotFound();
-        if (shipment.DriverId != userId) return Forbid();
+        
+        // Admin สามารถปิดงานได้ทุกคน, Driver ปิดได้เฉพาะงานตัวเอง
+        if (role != "Admin" && shipment.DriverId != userId) return Forbid();
+        
         if (shipment.Status != ShipmentStatus.Active) return BadRequest(new { message = "การเดินรถนี้ไม่ได้อยู่ในสถานะ Active" });
 
         var oldStatus = shipment.Status;

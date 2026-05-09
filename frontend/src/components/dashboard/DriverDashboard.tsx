@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getShipments, getWithdrawals, getFuelClaims } from '../../lib/api';
-import { Truck, MapPin, Navigation, Banknote, Fuel, Clock, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { getShipments, getWithdrawals, getFuelClaims, completeShipment } from '../../lib/api';
+import { Truck, MapPin, Navigation, Banknote, Fuel, Clock, CheckCircle, XCircle, Eye, CheckSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import RequestDetailModal from './RequestDetailModal';
+import toast from 'react-hot-toast';
 
 interface DriverDashboardProps {
   viewMode?: 'personal' | 'all';
@@ -16,58 +17,71 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [shipmentsRes, withdrawalsRes, claimsRes] = await Promise.all([
-          getShipments(),
-          getWithdrawals(),
-          getFuelClaims()
-        ]);
+  const fetchData = async () => {
+    try {
+      const [shipmentsRes, withdrawalsRes, claimsRes] = await Promise.all([
+        getShipments(),
+        getWithdrawals(),
+        getFuelClaims()
+      ]);
 
-        let shipments = shipmentsRes.data;
-        let withdrawals = withdrawalsRes.data;
-        let claims = claimsRes.data;
+      let shipments = shipmentsRes.data;
+      let withdrawals = withdrawalsRes.data;
+      let claims = claimsRes.data;
 
-        if (viewMode === 'personal') {
-          shipments = shipments.filter((s: any) => s.driverId === currentUser?.userId);
-          withdrawals = withdrawals.filter((w: any) => w.driverId === currentUser?.userId);
-          claims = claims.filter((c: any) => c.driverId === currentUser?.userId);
-        }
-
-        const active = shipments.filter((s: any) => s.status === 'Active');
-        setActiveShipments(active);
-
-        const wItems = withdrawals.map((w: any) => ({
-          ...w,
-          type: 'Withdrawal',
-          title: 'เบิกเงิน',
-          date: new Date(w.createdAt),
-          amountDisplay: `฿${w.amount.toLocaleString()}`,
-        }));
-
-        const cItems = claims.map((c: any) => ({
-          ...c,
-          type: 'FuelClaim',
-          title: 'เคลมน้ำมัน',
-          date: new Date(c.createdAt),
-          amountDisplay: `฿${c.claimAmount.toLocaleString()}`,
-        }));
-
-        const combined = [...wItems, ...cItems]
-          .sort((a, b) => b.date.getTime() - a.date.getTime())
-          .slice(0, viewMode === 'all' ? 10 : 5);
-
-        setRecentItems(combined);
-      } catch (error) {
-        console.error("Failed to fetch driver data", error);
-      } finally {
-        setLoading(false);
+      if (viewMode === 'personal') {
+        shipments = shipments.filter((s: any) => s.driverId === currentUser?.userId);
+        withdrawals = withdrawals.filter((w: any) => w.driverId === currentUser?.userId);
+        claims = claims.filter((c: any) => c.driverId === currentUser?.userId);
       }
-    };
 
+      const active = shipments.filter((s: any) => s.status === 'Active');
+      setActiveShipments(active);
+
+      const wItems = withdrawals.map((w: any) => ({
+        ...w,
+        type: 'Withdrawal',
+        title: 'เบิกเงิน',
+        date: new Date(w.createdAt),
+        amountDisplay: `฿${w.amount.toLocaleString()}`,
+      }));
+
+      const cItems = claims.map((c: any) => ({
+        ...c,
+        type: 'FuelClaim',
+        title: 'เคลมน้ำมัน',
+        date: new Date(c.createdAt),
+        amountDisplay: `฿${c.claimAmount.toLocaleString()}`,
+      }));
+
+      const combined = [...wItems, ...cItems]
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+        .slice(0, viewMode === 'all' ? 10 : 5);
+
+      setRecentItems(combined);
+    } catch (error) {
+      console.error("Failed to fetch driver data", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, [viewMode, currentUser?.userId]);
+
+  const handleCompleteShipment = async (s: any) => {
+    const mileage = window.prompt(`ยืนยันการปิดงานเลขที่ "${s.tripNumber}"\nกรุณากรอกเลขไมล์เมื่อเสร็จสิ้น:`, s.startMileage.toString());
+    if (mileage !== null) {
+      try {
+        await completeShipment(s.id, parseFloat(mileage));
+        toast.success('ปิดงานเรียบร้อยแล้ว');
+        fetchData();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'เกิดข้อผิดพลาด');
+      }
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -139,6 +153,17 @@ export default function DriverDashboard({ viewMode = 'personal' }: DriverDashboa
                       <div className="mt-1"><MapPin className="w-4 h-4 text-emerald-400" /></div>
                       <p className="text-sm text-slate-300">{shipment.origin} → {shipment.destination}</p>
                     </div>
+
+                    {/* Complete Button */}
+                    {viewMode === 'personal' && (
+                      <button
+                        onClick={() => handleCompleteShipment(shipment)}
+                        className="w-full mt-2 flex items-center justify-center gap-2 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-xl transition-all font-bold text-sm"
+                      >
+                        <CheckSquare className="w-4 h-4" />
+                        ปิดงาน (เสร็จสิ้น)
+                      </button>
+                    )}
                   </div>
                 </div>
                 <Truck className="absolute -right-4 -bottom-4 w-20 h-20 text-white/5 group-hover:text-primary-500/10 transition-colors" />

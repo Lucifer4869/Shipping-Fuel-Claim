@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getShipments, createShipment, updateShipment, deleteShipment, getWithdrawals, getFuelClaims } from '../lib/api';
+import { getShipments, createShipment, updateShipment, deleteShipment, getWithdrawals, getFuelClaims, completeShipment } from '../lib/api';
 import toast from 'react-hot-toast';
-import { Plus, Truck, MapPin, Gauge, Calendar, X, Route, Navigation, Edit2, User, Phone, Trash2, Banknote, Fuel } from 'lucide-react';
+import { Plus, Truck, MapPin, Gauge, Calendar, X, Route, Navigation, Edit2, User, Phone, Trash2, Banknote, Fuel, CheckCircle } from 'lucide-react';
 import { LocationPicker } from '../components/LocationPicker';
 import RequestDetailModal from '../components/dashboard/RequestDetailModal';
 
@@ -174,6 +174,19 @@ export default function ShipmentsPage() {
     }
   };
 
+  const handleCompleteShipment = async (s: Shipment) => {
+    const mileage = window.prompt(`ยืนยันการปิดงานเลขที่ "${s.tripNumber}"\nกรุณากรอกเลขไมล์เมื่อเสร็จสิ้น:`, s.startMileage.toString());
+    if (mileage !== null) {
+      try {
+        await completeShipment(s.id, parseFloat(mileage));
+        toast.success('ปิดงานเรียบร้อยแล้ว');
+        fetchShipments();
+      } catch (err: any) {
+        toast.error(err.response?.data?.message || 'เกิดข้อผิดพลาด');
+      }
+    }
+  };
+
   const detailShipment = shipments.find(s => s.id === detailId);
 
   return (
@@ -307,6 +320,15 @@ export default function ShipmentsPage() {
                             className="p-1.5 text-slate-500 hover:text-amber-400 hover:bg-amber-400/10 rounded-lg transition-colors"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {s.status === 'Active' && (user?.role === 'Admin' || user?.role === 'Driver') && (
+                          <button
+                            onClick={() => handleCompleteShipment(s)}
+                            title="ปิดงาน (เสร็จสิ้น)"
+                            className="p-1.5 text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10 rounded-lg transition-colors"
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
                           </button>
                         )}
                         <button
