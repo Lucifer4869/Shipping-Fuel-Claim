@@ -11,6 +11,8 @@ import FuelClaimsPage from './pages/FuelClaimsPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 import UsersPage from './pages/UsersPage';
 
+import ReportsPage from './pages/ReportsPage';
+
 function ProtectedRoute({ children, roles }: { children: React.ReactNode; roles?: string[] }) {
   const { user, isLoading } = useAuth();
   if (isLoading) return (
@@ -32,6 +34,7 @@ function AppRoutes() {
       <Route path="/shipments" element={<ProtectedRoute><ShipmentsPage /></ProtectedRoute>} />
       <Route path="/withdrawals" element={<ProtectedRoute><WithdrawalsPage /></ProtectedRoute>} />
       <Route path="/fuel-claims" element={<ProtectedRoute><FuelClaimsPage /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute roles={['Admin', 'Manager', 'Finance']}><ReportsPage /></ProtectedRoute>} />
       <Route path="/audit-logs" element={<ProtectedRoute roles={['Admin']}><AuditLogsPage /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute roles={['Admin']}><UsersPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

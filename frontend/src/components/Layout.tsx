@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Truck, LayoutDashboard, FileText, Fuel, ClipboardList,
-  LogOut, ChevronRight, User
+  LogOut, ChevronRight, User, BarChart3
 } from 'lucide-react';
 
 interface Props { children: ReactNode }
@@ -33,6 +33,7 @@ export default function Layout({ children }: Props) {
     { to: '/shipments', icon: Truck, label: 'การเดินรถ', roles: ['Driver', 'Manager', 'Finance', 'Admin'] },
     { to: '/withdrawals', icon: FileText, label: 'ขอเบิกเงิน', roles: ['Driver', 'Manager', 'Finance', 'Admin'] },
     { to: '/fuel-claims', icon: Fuel, label: 'เคลมน้ำมัน', roles: ['Driver', 'Manager', 'Finance', 'Admin'] },
+    { to: '/reports', icon: BarChart3, label: 'ออกรายงาน', roles: ['Admin', 'Manager', 'Finance'] },
     { to: '/users', icon: User, label: 'จัดการผู้ใช้งาน', roles: ['Admin'] },
     { to: '/audit-logs', icon: ClipboardList, label: 'Audit Log', roles: ['Admin'] },
   ].filter(item => item.roles.includes(user?.role ?? ''));
