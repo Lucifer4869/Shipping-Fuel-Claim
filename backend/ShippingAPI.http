@@ -1,0 +1,277 @@
+### ==========================================================
+### Shipping Management System — HTTP API Test File
+### ==========================================================
+### วิธีใช้: รัน dotnet run ใน /backend ก่อน แล้วรัน request ด้วย
+###          VS Code REST Client extension หรือ JetBrains HTTP Client
+### ==========================================================
+
+@baseUrl = http://localhost:5000
+@contentType = application/json
+
+### ตัวแปร JWT Token (copy จาก response ของ /api/auth/login มาวางตรงนี้)
+@token = PASTE_YOUR_TOKEN_HERE
+
+### ============================================================
+### 1. AUTHENTICATION
+### ============================================================
+
+### 1.1 Login — Admin
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+###
+
+### 1.2 Login — Driver
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "driver01",
+  "password": "driver123"
+}
+
+###
+
+### 1.3 Login — Manager
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "manager01",
+  "password": "manager123"
+}
+
+###
+
+### 1.4 Login — Finance
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+  "username": "finance01",
+  "password": "finance123"
+}
+
+###
+
+### ============================================================
+### 2. SHIPMENTS (การเดินรถ)
+### ============================================================
+
+### 2.1 ดูรายการเดินรถทั้งหมด
+GET {{baseUrl}}/api/shipments
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+###
+
+### 2.2 สร้างเดินรถใหม่ (Driver)
+POST {{baseUrl}}/api/shipments
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "vehiclePlate": "กข 1234",
+  "origin": "กรุงเทพ",
+  "destination": "เชียงใหม่",
+  "startMileage": 52000
+}
+
+###
+
+### 2.3 ปิดการเดินรถ (Complete)
+PATCH {{baseUrl}}/api/shipments/1/complete
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+52500
+
+###
+
+### 2.4 ลบการเดินรถ (Admin Only)
+DELETE {{baseUrl}}/api/shipments/1
+Authorization: Bearer {{token}}
+
+###
+
+### ============================================================
+### 3. WITHDRAWALS (ขอเบิกเงิน)
+### ============================================================
+
+### 3.1 ดูรายการขอเบิกเงินทั้งหมด
+GET {{baseUrl}}/api/withdrawals
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+###
+
+### 3.2 ส่งรายการขอเบิกเงิน (Driver)
+POST {{baseUrl}}/api/withdrawals
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "shipmentId": 1,
+  "amount": 2500.00,
+  "reason": "ค่าน้ำมันและค่าอาหาร",
+  "additionalItems": "ค่าทางด่วน 120 บาท"
+}
+
+###
+
+### 3.3 Manager อนุมัติ (Manager/Admin)
+PATCH {{baseUrl}}/api/withdrawals/1/approve
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "isApproved": true,
+  "note": "อนุมัติโดย Manager"
+}
+
+###
+
+### 3.4 Finance อนุมัติ (Finance/Admin)
+PATCH {{baseUrl}}/api/withdrawals/1/finance-approve
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "isApproved": true,
+  "note": "อนุมัติโดย Finance"
+}
+
+###
+
+### 3.5 ลบรายการขอเบิก (Admin Only)
+DELETE {{baseUrl}}/api/withdrawals/1
+Authorization: Bearer {{token}}
+
+###
+
+### ============================================================
+### 4. FUEL CLAIMS (เคลมน้ำมัน)
+### ============================================================
+
+### 4.1 ดูรายการเคลมน้ำมันทั้งหมด
+GET {{baseUrl}}/api/claims
+Accept: {{contentType}}
+Authorization: Bearer {{token}}
+
+###
+
+### 4.2 ส่งรายการเคลมน้ำมัน (Driver)
+POST {{baseUrl}}/api/claims
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "shipmentId": 1,
+  "claimAmount": 1850.00,
+  "receiptUrl": "http://localhost:5000/uploads/test-receipt.jpg",
+  "mileageOut": 52000,
+  "mileageIn": 52750
+}
+
+###
+
+### 4.3 Manager อนุมัติ (Manager/Admin)
+PATCH {{baseUrl}}/api/claims/1/approve
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "isApproved": true,
+  "note": "อนุมัติโดย Manager"
+}
+
+###
+
+### 4.4 Finance อนุมัติ (Finance/Admin)
+PATCH {{baseUrl}}/api/claims/1/finance-approve
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "isApproved": true,
+  "note": "อนุมัติโดย Finance"
+}
+
+###
+
+### 4.5 ลบรายการเคลมน้ำมัน (Admin Only)
+DELETE {{baseUrl}}/api/claims/1
+Authorization: Bearer {{token}}
+
+###
+
+### ============================================================
+### 5. USERS (การจัดการผู้ใช้ — Admin Only)
+### ============================================================
+
+### 5.1 ดูรายชื่อผู้ใช้ทั้งหมด
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{token}}
+
+###
+
+### 5.2 สร้างผู้ใช้ใหม่
+POST {{baseUrl}}/api/users
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "username": "newdriver",
+  "password": "password123",
+  "fullName": "นายทดสอบ ขยันขับ",
+  "role": 1,
+  "vehiclePlate": "ถถ 4444"
+}
+
+###
+
+### 5.3 ลบผู้ใช้
+DELETE {{baseUrl}}/api/users/5
+Authorization: Bearer {{token}}
+
+###
+
+### ============================================================
+### 6. AUDIT LOGS (Admin เท่านั้น)
+### ============================================================
+
+### 6.1 ดู Audit Log ทั้งหมด
+GET {{baseUrl}}/api/audit-logs
+Authorization: Bearer {{token}}
+
+###
+
+### 6.2 Filter by ตาราง
+GET {{baseUrl}}/api/audit-logs?tableName=Shipments
+Authorization: Bearer {{token}}
+
+###
+
+### ============================================================
+### 7. UPLOADS (อัปโหลดรูปภาพ)
+### ============================================================
+
+### 7.1 อัปโหลดไฟล์ (ต้องใช้ Multipart Form-Data - แนะนำใช้หน้าเว็บทดสอบ)
+### สำหรับ REST Client สามารถใช้ syntax พิเศษได้ (ถ้า extension รองรับ)
+POST {{baseUrl}}/api/uploads
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="receipt.jpg"
+Content-Type: image/jpeg
+
+< ./test-receipt.jpg
+--boundary--
+
+###
