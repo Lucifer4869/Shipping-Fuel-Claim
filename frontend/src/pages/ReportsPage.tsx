@@ -169,9 +169,7 @@ export default function ReportsPage() {
             </p>
           </div>
 
-          {/* Table Preview */}
           <div className="card overflow-hidden bg-white text-black p-8 print-area">
-            {/* Report Header Like Excel */}
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold mb-4">สรุปทดลองจ่ายแผน LH ประจำวัน</h2>
               <div className="text-sm mb-4 hidden print:block">
@@ -186,8 +184,7 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            {/* Main Table */}
-            <table className="w-full border-collapse border border-black">
+            <table className="w-full">
               <thead>
                 <tr className="bg-gray-100">
                   <th className="border border-black text-[10px]">ลำดับ</th>
@@ -196,11 +193,11 @@ export default function ReportsPage() {
                   <th className="border border-black text-[10px]">รหัสรถ</th>
                   <th className="border border-black text-[10px]">แผน</th>
                   <th className="border border-black text-[10px]">ชื่อ พขร.</th>
-                  <th className="border border-black text-[10px]">เลขที่บัญชี TMB</th>
+                  <th className="border border-black text-[10px]">เลขที่บัญชี</th>
                   <th className="border border-black text-[10px]">จำนวนน้ำมัน / ลิตร</th>
                   <th className="border border-black text-[10px]">ค่าน้ำมันทั้งสิ้น / บาท</th>
                   <th className="border border-black text-[10px]">ค่าเบี้ยเลี้ยง วันวิ่ง</th>
-                  <th className="border border-black text-[10px] bg-green-50">รวมทั้งสิ้น</th>
+                  <th className="border border-black text-[10px] bg-summary">รวมทั้งสิ้น</th>
                 </tr>
               </thead>
               <tbody>
@@ -221,13 +218,12 @@ export default function ReportsPage() {
                       <td className="border border-black text-[10px]">{item.fuelLitre}</td>
                       <td className="border border-black text-[10px] text-right px-2">{item.fuelAmount > 0 ? item.fuelAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
                       <td className="border border-black text-[10px] text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-                      <td className="border border-black text-[10px] text-right px-2 font-bold bg-green-50">
+                      <td className="border border-black text-[10px] text-right px-2 font-bold bg-summary">
                         {item.total > 0 ? item.total.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}
                       </td>
                     </tr>
                   ))
                 )}
-                {/* Total Row */}
                 {reportData.length > 0 && (
                   <tr className="bg-gray-100 font-bold">
                     <td colSpan={8} className="border border-black text-right px-4 text-[11px]">รวมทั้งสิ้น</td>
