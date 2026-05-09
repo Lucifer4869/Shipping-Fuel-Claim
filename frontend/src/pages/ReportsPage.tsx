@@ -154,13 +154,23 @@ export default function ReportsPage() {
               <label className="label text-xs font-bold text-slate-500 uppercase tracking-widest">วันที่แสดงบนหัวรายงาน</label>
               <input type="text" className="input-field text-sm" value={reportDate} onChange={e => setReportDate(e.target.value)} />
             </div>
+            <div className="pt-4 border-t border-slate-700/50">
+              <label className="label text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
+                อัตราน้ำมันวันนี้ (บาท/ลิตร)
+                <a href="https://www.pttor.com/th/oil_price" target="_blank" rel="noreferrer" className="text-[10px] text-primary-400 hover:underline flex items-center gap-1">
+                  เช็คราคาน้ำมัน PTT <Info className="w-2.5 h-2.5" />
+                </a>
+              </label>
+              <input type="number" step="0.01" className="input-field text-sm" placeholder="เช่น 32.94" />
+            </div>
+
             <button onClick={fetchData} className="btn-secondary w-full text-sm py-2.5 mt-2">อัปเดตข้อมูล</button>
           </div>
         </div>
 
         <div className="lg:col-span-3 space-y-6">
           {/* Preview Notice */}
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-start gap-3">
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 flex items-start gap-3 no-print">
             <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-blue-200 leading-relaxed">
               <strong>คำแนะนำ:</strong> รูปแบบที่เห็นด้านล่างนี้คือตัวอย่างตารางที่จะปรากฏในไฟล์ PDF 
@@ -203,7 +213,7 @@ export default function ReportsPage() {
               <tbody>
                 {reportData.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="p-10 text-center text-gray-400">ไม่พบข้อมูลในช่วงเวลาที่เลือก</td>
+                    <td colSpan={11} className="p-10 text-center text-gray-400 border border-black">ไม่พบข้อมูลในช่วงเวลาที่เลือก</td>
                   </tr>
                 ) : (
                   reportData.map((item, idx) => (
@@ -229,25 +239,83 @@ export default function ReportsPage() {
                     <td colSpan={8} className="border border-black text-right px-4 text-[11px]">รวมทั้งสิ้น</td>
                     <td className="border border-black text-right px-2 text-[10px]">{totals.fuel.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                     <td className="border border-black text-right px-2 text-[10px]">{totals.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="border border-black text-right px-2 text-[11px] bg-green-100">{totals.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                    <td className="border border-black text-right px-2 text-[11px] bg-summary">{totals.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                   </tr>
                 )}
               </tbody>
             </table>
 
-            {/* Footer Placeholder */}
-            <div className="mt-12 grid grid-cols-3 gap-8 text-center no-print-flex hidden print:grid">
+            {/* Detailed Tables for Clarity */}
+            <div className="mt-12">
+              <h3 className="text-[12px] font-bold border-l-4 border-black pl-2 mb-3">รายละเอียดการเบิกเงิน (Withdrawals)</h3>
+              <table className="w-full mb-8">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border border-black text-[9px] py-1">ลำดับ</th>
+                    <th className="border border-black text-[9px] py-1">เลขที่แผน</th>
+                    <th className="border border-black text-[9px] py-1">ชื่อคนขับ</th>
+                    <th className="border border-black text-[9px] py-1">รายการ</th>
+                    <th className="border border-black text-[9px] py-1">จำนวนเงิน</th>
+                    <th className="border border-black text-[9px] py-1">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportData.length > 0 ? reportData.map((item, idx) => (
+                    <tr key={`w-${idx}`}>
+                      <td className="border border-black text-[9px] py-1">{idx + 1}</td>
+                      <td className="border border-black text-[9px] py-1 font-mono">{item.tripNumber}</td>
+                      <td className="border border-black text-[9px] py-1">{item.driverName}</td>
+                      <td className="border border-black text-[9px] py-1 text-left px-2">เบี้ยเลี้ยง / เงินทดลองจ่าย</td>
+                      <td className="border border-black text-[9px] py-1 text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className="border border-black text-[9px] py-1 text-emerald-700 font-bold">อนุมัติจ่ายแล้ว</td>
+                    </tr>
+                  )) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเบิกเงิน</td></tr>}
+                </tbody>
+              </table>
+
+              <h3 className="text-[12px] font-bold border-l-4 border-black pl-2 mb-3">รายละเอียดการเคลมน้ำมัน (Fuel Claims)</h3>
+              <table className="w-full mb-8">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="border border-black text-[9px] py-1">ลำดับ</th>
+                    <th className="border border-black text-[9px] py-1">เลขที่แผน</th>
+                    <th className="border border-black text-[9px] py-1">ชื่อคนขับ</th>
+                    <th className="border border-black text-[9px] py-1">ทะเบียนรถ</th>
+                    <th className="border border-black text-[9px] py-1">จำนวนเงิน</th>
+                    <th className="border border-black text-[9px] py-1">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportData.length > 0 ? reportData.map((item, idx) => (
+                    <tr key={`c-${idx}`}>
+                      <td className="border border-black text-[9px] py-1">{idx + 1}</td>
+                      <td className="border border-black text-[9px] py-1 font-mono">{item.tripNumber}</td>
+                      <td className="border border-black text-[9px] py-1">{item.driverName}</td>
+                      <td className="border border-black text-[9px] py-1">{item.vehiclePlate}</td>
+                      <td className="border border-black text-[9px] py-1 text-right px-2">{item.fuelAmount > 0 ? item.fuelAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className="border border-black text-[9px] py-1 text-emerald-700 font-bold">อนุมัติจ่ายแล้ว</td>
+                    </tr>
+                  )) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเคลมน้ำมัน</td></tr>}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer Signatures */}
+            <div className="mt-16 grid grid-cols-3 gap-8 text-center">
               <div className="space-y-12">
                 <p className="text-xs">ผู้จัดทำ..............................................</p>
-                <p className="text-xs">( .................................................. )</p>
+                <p className="text-xs font-bold">( .................................................. )</p>
+                <p className="text-[10px]">วันที่ ....../....../......</p>
               </div>
               <div className="space-y-12">
                 <p className="text-xs">ผู้ตรวจสอบ..............................................</p>
-                <p className="text-xs">( .................................................. )</p>
+                <p className="text-xs font-bold">( .................................................. )</p>
+                <p className="text-[10px]">วันที่ ....../....../......</p>
               </div>
               <div className="space-y-12">
-                <p className="text-xs">ผู้อนุมัติ..............................................</p>
-                <p className="text-xs">( .................................................. )</p>
+                <p className="text-xs font-bold text-red-600 underline">ผู้อนุมัติจ่ายเงิน..............................................</p>
+                <p className="text-xs font-bold">( .................................................. )</p>
+                <p className="text-[10px]">วันที่ ....../....../......</p>
               </div>
             </div>
           </div>
