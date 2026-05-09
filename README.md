@@ -124,7 +124,30 @@
 
 ---
 
-## 📡 API Endpoints (สรุปรายการ API)
+---
+
+## 7. ระบบออกรายงานบัญชี (Accounting Reports) 📊
+
+ระบบมีหน้าจอพิเศษสำหรับการสรุปยอดทางการเงิน (Daily Financial Summary) เพื่อใช้ส่งต่อให้กับฝ่ายบัญชีหรือตรวจสอบยอดประจำวัน:
+
+*   **ตารางสรุปทดลองจ่าย:** ออกแบบตามมาตรฐานตารางบัญชี (Daily Trial Payment Summary)
+*   **การคำนวณอัตโนมัติ:** รวมยอดค่าน้ำมัน (Fuel Claim) และเบี้ยเลี้ยง/เงินทดลองจ่าย (Withdrawal) แยกตามรายเลขที่แผนการเดินรถ (Trip Number)
+*   **Print-Friendly Design:** รองรับการพิมพ์ผ่านเบราว์เซอร์ (`window.print()`) โดยจัดรูปแบบเป็น **แนวนอน (Landscape)** และลบส่วนที่ไม่จำเป็นออกให้อัตโนมัติ เพื่อให้ได้เอกสาร PDF ที่สะอาดเหมือนเอกสารราชการ
+*   **Universal Date Format:** ทุกจุดในรายงานใช้รูปแบบวันที่แบบ **dd/mm/yyyy (ค.ศ.)** เช่น `09/05/2026` เพื่อความชัดเจนและเป็นสากล
+*   **Signature Section:** มีส่วนสำหรับลายเซ็น ผู้จัดทำ, ผู้ตรวจสอบ และผู้อนุมัติ ท้ายรายงาน
+
+---
+
+## 8. การจัดการสถานะงานวิ่ง (Shipment Lifecycle)
+
+งานเดินรถจะมีวงจรชีวิต (Lifecycle) ที่ชัดเจนเพื่อให้ตรวจสอบได้:
+1.  **Active (กำลังดำเนินการ):** เมื่อสร้างงานใหม่ สถานะจะเป็น Active เสมอ
+2.  **Completed (เสร็จสิ้น):** เมื่อส่งของเสร็จสิ้น **คนขับ (Driver)** หรือ **ผู้ดูแลระบบ (Admin)** สามารถกดปุ่ม "ปิดงาน" เพื่อบันทึกเลขไมล์สิ้นสุด (`EndMileage`) และเปลี่ยนสถานะเป็น Completed
+3.  **Reporting:** งานที่ถูกปิดแล้วจะถูกดึงไปแสดงในหน้า "ออกรายงาน" เพื่อสรุปยอดเงินและปิดบัญชี
+
+---
+
+## 📡 API Endpoints (อัปเดตล่าสุด)
 
 | หมวดหมู่ | Method | Endpoint | คำอธิบาย | สิทธิ์ (Role) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -132,17 +155,18 @@
 | | POST | `/api/auth/google-login` | เข้าสู่ระบบด้วย Google | ทุกคน |
 | **Shipments**| GET | `/api/shipments` | ดูรายการเดินรถทั้งหมด | ทุกคน |
 | | POST | `/api/shipments` | สร้างรายการเดินรถใหม่ | Driver/Admin |
-| | PATCH | `/api/shipments/{id}/complete`| ปิดงานและบันทึกเลขไมล์ | Driver/Admin |
-| | DELETE | `/api/shipments/{id}` | ลบรายการเดินรถ | Admin |
+| | PUT | `/api/shipments/{id}` | แก้ไขข้อมูลการเดินทาง | Driver/Admin |
+| | PATCH | `/api/shipments/{id}/complete`| ปิดงานและบันทึกเลขไมล์ (เสร็จสิ้น) | Driver/Admin |
+| | DELETE | `/api/shipments/{id}` | ลบรายการเดินรถและรายการเงินที่เกี่ยวข้อง | Admin |
 | **Finance** | POST | `/api/withdrawals` | ส่งขอเบิกเงินล่วงหน้า | Driver/Admin |
 | | PATCH | `/api/withdrawals/{id}/approve` | Manager อนุมัติเบิกเงิน | Manager/Admin |
 | | PATCH | `/api/withdrawals/{id}/finance-approve` | Finance อนุมัติเบิกเงิน | Finance/Admin |
-| **Claims** | POST | `/api/claims` | ส่งเคลมค่าน้ำมัน | Driver/Admin |
+| **Claims** | POST | `/api/claims` | ส่งเคลมค่าน้ำมัน (พร้อมแนบสลิป) | Driver/Admin |
 | | PATCH | `/api/claims/{id}/approve` | Manager อนุมัติเคลม | Manager/Admin |
 | | PATCH | `/api/claims/{id}/finance-approve` | Finance อนุมัติเคลม | Finance/Admin |
 | **Admin** | GET | `/api/users` | ดูรายชื่อพนักงานทั้งหมด | Admin |
-| | GET | `/api/audit-logs` | ดูประวัติการแก้ไขข้อมูล | Admin |
-| **Uploads** | POST | `/api/uploads` | อัปโหลดรูปภาพใบเสร็จ | ทุกคน |
+| | GET | `/api/audit-logs` | ดูประวัติการแก้ไขข้อมูล (Audit Trail) | Admin |
+| **Uploads** | POST | `/api/uploads` | อัปโหลดรูปภาพใบเสร็จ/หลักฐาน | ทุกคน |
 
 ---
 
