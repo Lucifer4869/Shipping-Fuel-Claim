@@ -15,8 +15,14 @@ const formatDateAD = (date: Date | string) => {
 };
 
 export default function ReportsPage() {
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  });
   const [reportDate, setReportDate] = useState(formatDateAD(new Date()));
   
   const [reportData, setReportData] = useState<any[]>([]);
@@ -30,18 +36,26 @@ export default function ReportsPage() {
         getFuelClaims()
       ]);
 
+      // Normalize dates for local comparison
       const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
 
       const filteredShipments = sRes.data.filter((s: any) => {
-        const date = new Date(s.createdAt);
-        return date >= start && date <= end;
+        const sDate = new Date(s.createdAt);
+        return sDate >= start && sDate <= end;
       });
 
       const mapped = filteredShipments.map((s: any) => {
-        const sWithdrawals = wRes.data.filter((w: any) => w.shipmentId === s.id && w.status === 'ApprovedByFinance');
-        const sClaims = cRes.data.filter((c: any) => c.shipmentId === s.id && c.status === 'ApprovedByFinance');
+        // Only sum approved amounts for the financial report
+        const sWithdrawals = wRes.data.filter((w: any) => 
+          w.shipmentId === s.id && (w.status === 'ApprovedByFinance' || w.status === 'ApprovedByManager')
+        );
+        const sClaims = cRes.data.filter((c: any) => 
+          c.shipmentId === s.id && (c.status === 'ApprovedByFinance' || c.status === 'ApprovedByManager')
+        );
 
         const fuelTotal = sClaims.reduce((sum: number, c: any) => sum + Number(c.claimAmount), 0);
         const allowanceTotal = sWithdrawals.reduce((sum: number, w: any) => sum + Number(w.amount), 0);
@@ -68,6 +82,7 @@ export default function ReportsPage() {
       setTotals({ fuel: fuelSum, allowance: allowSum, grandTotal: fuelSum + allowSum });
 
     } catch (error) {
+      console.error('Fetch error:', error);
       toast.error('ไม่สามารถโหลดข้อมูลรายงานได้');
     }
   };
