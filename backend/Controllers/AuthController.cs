@@ -81,6 +81,8 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new { message = "Invalid Google token", error = ex.Message });
         }
+    }
+
     [HttpGet("me")]
     [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<ActionResult> GetMe()
