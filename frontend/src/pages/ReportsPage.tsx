@@ -38,9 +38,15 @@ export default function ReportsPage() {
         const fuelTotal = sClaims.reduce((sum: number, c: any) => sum + Number(c.claimAmount), 0);
         const allowanceTotal = sWithdrawals.reduce((sum: number, w: any) => sum + Number(w.amount), 0);
         
+        const d = new Date(s.createdAt);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        const formattedDate = `${day}/${month}/${year}`;
+        
         return {
           id: s.id,
-          date: new Date(s.createdAt).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+          date: formattedDate,
           tripNumber: s.tripNumber,
           vehiclePlate: s.vehiclePlate,
           plan: `${s.origin} - ${s.destination}`,
