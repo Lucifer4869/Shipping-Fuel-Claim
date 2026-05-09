@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getShipments, getWithdrawals, getFuelClaims, getOilPrice } from '../lib/api';
 import { 
   Filter, BarChart3, Printer, 
-  Info
+  Info, RefreshCw
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -81,17 +81,18 @@ export default function ReportsPage() {
     fetchData();
   }, [startDate, endDate]);
 
-  useEffect(() => {
-    const fetchOilPriceData = async () => {
-      try {
-        const res = await getOilPrice();
-        if (res.data && res.data.price) {
-          setOilRate(res.data.price.toString());
-        }
-      } catch (err) {
-        console.error('Failed to fetch oil price from backend:', err);
+  const fetchOilPriceData = async () => {
+    try {
+      const res = await getOilPrice();
+      if (res.data && res.data.price) {
+        setOilRate(res.data.price.toString());
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch oil price from backend:', err);
+    }
+  };
+
+  useEffect(() => {
     fetchOilPriceData();
   }, []);
 
@@ -172,9 +173,13 @@ export default function ReportsPage() {
             <div className="pt-4 border-t border-slate-700/50">
               <label className="label text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center justify-between">
                 อัตราน้ำมันวันนี้ (บาท/ลิตร)
-                <a href="https://www.pttor.com/th/oil_price" target="_blank" rel="noreferrer" className="text-[10px] text-primary-400 hover:underline flex items-center gap-1">
-                  เช็คราคาน้ำมัน PTT <Info className="w-2.5 h-2.5" />
-                </a>
+                <button 
+                  onClick={fetchOilPriceData}
+                  className="text-[10px] text-primary-400 hover:text-primary-300 flex items-center gap-1 transition-colors"
+                  title="ซิงค์ราคาน้ำมันล่าสุดจาก PTT"
+                >
+                  <RefreshCw className="w-2.5 h-2.5" /> ซิงค์ข้อมูล PTT
+                </button>
               </label>
               <input 
                 type="number" 

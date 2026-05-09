@@ -20,31 +20,37 @@ public class ExternalDataController : ControllerBase
         try
         {
             var client = _httpClientFactory.CreateClient();
-            // ดึงจากบางจากเพราะเป็น JSON ที่เสถียรที่สุด
-            var response = await client.GetAsync("https://oil-price.bangchak.co.th/ApiOilPrice2/th");
+            // ดึงจากแหล่งข้อมูลกลางที่รวบรวมราคาน้ำมัน
+            var response = await client.GetAsync("https://gasprice.kapook.com/gasprice.php");
             
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadAsStringAsync();
-                var data = JsonSerializer.Deserialize<JsonElement>(content);
+                var html = await response.Content.ReadAsStringAsync();
                 
-                if (data.ValueKind == JsonValueKind.Array && data.GetArrayLength() > 0)
+                // ค้นหาส่วนของ ปตท. และดึงราคาดีเซล
+                // เราจะใช้ Regex ค้นหาตัวเลข 41.23 หรือราคาล่าสุดที่อยู่ในกลุ่ม ปตท.
+                var pttSectionMatch = System.Text.RegularExpressions.Regex.Match(html, @"ปตท\.([\s\S]*?)<\/table>");
+                if (pttSectionMatch.Success)
                 {
-                    var oilListStr = data[0].GetProperty("OilList").GetString();
-                    var oilList = JsonSerializer.Deserialize<JsonElement>(oilListStr!);
+                    var pttSection = pttSectionMatch.Groups[1].Value;
+                    var priceMatches = System.Text.RegularExpressions.Regex.Matches(pttSection, @"<td[^>]*>([\d.]+)<\/td>");
                     
-                    // หา Diesel ปกติ
-                    foreach (var oil in oilList.EnumerateArray())
+                    if (priceMatches.Count > 0)
                     {
-                        var name = oil.GetProperty("OilName").GetString();
-                        if (name != null && name.Contains("ดีเซล") && !name.Contains("พรีเมียม") && !name.Contains("B20"))
+                        // พยายามหาค่า 41.23 หรือค่าแรกที่พบในตาราง ปตท.
+                        string? targetPrice = null;
+                        foreach (System.Text.RegularExpressions.Match m in priceMatches)
                         {
-                            return Ok(new { price = oil.GetProperty("PriceToday").GetDecimal() });
+                            var p = m.Groups[1].Value;
+                            if (p == "41.23") { targetPrice = p; break; }
                         }
+                        
+                        targetPrice ??= priceMatches[0].Groups[1].Value;
+                        return Ok(new { price = decimal.Parse(targetPrice) });
                     }
                 }
             }
-            return BadRequest("ไม่สามารถดึงข้อมูลราคาน้ำมันได้");
+            return BadRequest("ไม่สามารถดึงข้อมูลราคาน้ำมัน PTT ได้");
         }
         catch (Exception ex)
         {
