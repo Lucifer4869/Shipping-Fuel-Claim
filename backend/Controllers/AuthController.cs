@@ -36,6 +36,7 @@ public class AuthController : ControllerBase
             Token = token,
             FullName = user.FullName,
             Role = user.Role.ToString(),
+            VehiclePlate = user.VehiclePlate,
             UserId = user.Id
         });
     }
@@ -72,6 +73,7 @@ public class AuthController : ControllerBase
                 Token = token,
                 FullName = user.FullName,
                 Role = user.Role.ToString(),
+                VehiclePlate = user.VehiclePlate,
                 UserId = user.Id
             });
         }
@@ -79,5 +81,23 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new { message = "Invalid Google token", error = ex.Message });
         }
+    [HttpGet("me")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<ActionResult> GetMe()
+    {
+        var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out var userId))
+            return Unauthorized();
+
+        var user = await _db.Users.FindAsync(userId);
+        if (user == null) return NotFound();
+
+        return Ok(new
+        {
+            UserId = user.Id,
+            FullName = user.FullName,
+            Role = user.Role.ToString(),
+            VehiclePlate = user.VehiclePlate
+        });
     }
 }

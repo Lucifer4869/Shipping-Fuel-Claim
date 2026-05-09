@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<void>;
   googleLoginUser: (idToken: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -23,11 +24,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const refreshUser = async () => {
+    try {
+      const { getMe } = await import('../lib/api');
+      const res = await getMe();
+      const data = res.data;
+      const userData: User = {
+        userId: data.userId,
+        fullName: data.fullName,
+        role: data.role,
+        token: localStorage.getItem('token') || '',
+        vehiclePlate: data.vehiclePlate,
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+    } catch (err) {
+      console.error('Failed to refresh user data:', err);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     if (token && userData) {
       setUser(JSON.parse(userData));
+      refreshUser(); // ดึงข้อมูลล่าสุดจาก Server เสมอ
     }
     setIsLoading(false);
   }, []);
@@ -40,6 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       fullName: data.fullName,
       role: data.role,
       token: data.token,
+      vehiclePlate: data.vehiclePlate,
     };
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -54,6 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       fullName: data.fullName,
       role: data.role,
       token: data.token,
+      vehiclePlate: data.vehiclePlate,
     };
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(userData));
@@ -66,7 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, googleLoginUser, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, googleLoginUser, logout, refreshUser, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

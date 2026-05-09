@@ -31,6 +31,7 @@ export const login = (data: { username: string; password: string }) =>
   api.post('/auth/login', data);
 export const googleLogin = (idToken: string) =>
   api.post('/auth/google-login', { idToken });
+export const getMe = () => api.get('/auth/me');
 
 // Shipments
 export const getShipments = () => api.get('/shipments');

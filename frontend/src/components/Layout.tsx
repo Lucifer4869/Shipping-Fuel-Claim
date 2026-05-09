@@ -228,9 +228,14 @@ export default function Layout({ children }: Props) {
                 {user?.fullName}
               </p>
 
-              <p className="text-[11px] text-slate-400">
-                {roleLabels[user?.role ?? '']}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[9px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700 font-mono">
+                  ทะเบียน: {user?.vehiclePlate || 'ไม่ระบุ'}
+                </span>
+                <span className="text-[10px] text-slate-500 truncate">
+                  {roleLabels[user?.role ?? '']}
+                </span>
+              </div>
 
             </div>
           </div>

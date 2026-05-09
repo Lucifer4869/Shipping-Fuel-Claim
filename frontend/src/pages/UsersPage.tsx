@@ -6,7 +6,7 @@ import { Users as UsersIcon, Plus, UserCircle, Edit2, ShieldAlert, Trash2 } from
 import { useAuth } from '../contexts/AuthContext';
 
 export default function UsersPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const queryClient = useQueryClient();
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
@@ -43,8 +43,14 @@ export default function UsersPage() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number, data: any }) => updateUser(id, data),
-    onSuccess: () => {
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      
+      // ถ้านี่คือการแก้ไขข้อมูลของตัวเอง ให้รีเฟรช Session ด้วย
+      if (variables.id === user?.userId) {
+        await refreshUser();
+      }
+      
       toast.success('แก้ไขข้อมูลสำเร็จ');
       setShowModal(false);
       resetForm();
