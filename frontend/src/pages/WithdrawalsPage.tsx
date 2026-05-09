@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getWithdrawals, createWithdrawal, managerApproveWithdrawal, financeApproveWithdrawal, getShipments, deleteWithdrawal } from '../lib/api';
 import toast from 'react-hot-toast';
-import { Plus, Wallet, Clock, CheckCircle, XCircle, X, Trash2, Search, Filter, Eye, Calendar, FileText } from 'lucide-react';
+import { Plus, Wallet, Clock, CheckCircle, XCircle, X, Trash2, Search, Filter, Eye, FileText } from 'lucide-react';
 import RequestDetailModal from '../components/dashboard/RequestDetailModal';
 
 interface Withdrawal {

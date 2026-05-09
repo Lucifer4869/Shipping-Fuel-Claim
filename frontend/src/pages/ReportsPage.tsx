@@ -99,7 +99,7 @@ export default function ReportsPage() {
           if (prices && prices.length > 0) {
             // ปกติใน Kapook ราคาน้ำมันดีเซลมักจะเป็นลำดับต้นๆ ในตารางยี่ห้อ
             // หรือใช้ Regex เจาะจงราคาที่คุณระบุมา (41.23) หากพบในหน้าเว็บ
-            const pttDiesel = prices.map(p => p.replace(/<[^>]*>/g, '')).find(p => p === '41.23') || prices[0].replace(/<[^>]*>/g, '');
+            const pttDiesel = prices.map((p: string) => p.replace(/<[^>]*>/g, '')).find((p: string) => p === '41.23') || prices[0].replace(/<[^>]*>/g, '');
             setOilRate(pttDiesel);
           }
         }
