@@ -40,7 +40,7 @@ public class AuthController : ControllerBase
             UserId = user.Id
         });
     }
-    [HttpPost("google-login")]
+    [HttpPost("google-login")]//เพิ่ม api นี้ด้วยgoogle login โดยใช้ token 
     public async Task<ActionResult<LoginResponse>> GoogleLogin([FromBody] GoogleLoginRequest request)
     {
         try
@@ -50,22 +50,11 @@ public class AuthController : ControllerBase
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == payload.Email);
             if (user == null)
             {
-                // Create user automatically if not exists (assume Driver role by default for new google users, or maybe Admin creates them first. The prompt says "เพิ่มการ login google" so let's support auto-creation as Driver)
-                user = new Models.User
-                {
-                    Username = payload.Email,
-                    FullName = payload.Name,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString()), // Random dummy password
-                    Role = Models.UserRole.Driver,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _db.Users.Add(user);
-                await _db.SaveChangesAsync();
+                return Unauthorized(new { message = "อีเมลนี้ไม่มีในระบบ ไม่ได้รับอนุญาตให้เข้าใช้งาน" });
             }
 
             if (!user.IsActive)
-                return Unauthorized(new { message = "บัญชีนี้ถูกระงับการใช้งาน" });
+                return Unauthorized(new { message = "บัญชีนี้ถูกระงับการใช้งาน" });//เพิ่ม check ถ้า user ไม่ active ให้ return error
 
             var token = _jwtService.GenerateToken(user);
             return Ok(new LoginResponse
@@ -83,7 +72,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpGet("me")]
+    [HttpGet("me")] //เพิ่ม check ถ้า user ไม่ active ให้ return error จร้าาาา
     [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<ActionResult> GetMe()
     {

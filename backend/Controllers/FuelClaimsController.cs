@@ -7,11 +7,11 @@ using ShippingAPI.DTOs;
 using ShippingAPI.Models;
 using ShippingAPI.Services;
 
-namespace ShippingAPI.Controllers;
+namespace ShippingAPI.Controllers; //รายการเคลมน้ำมันครับผม เนืองจากเอาควบคุมการเครมค่าน้ำมันโดยแยกาลำดับชั้น role โดยมี driver, Manager และ Finance ครับผม
 
 [ApiController]
-[Route("api/claims")]
-[Authorize]
+[Route("api/claims")] //จัดการรายการเคลมน้ำมันครับผม
+[Authorize] //ยืนยันตัวตนผู้ใช้
 public class FuelClaimsController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -27,7 +27,7 @@ public class FuelClaimsController : ControllerBase
     private string GetUserName() => User.FindFirstValue("fullName") ?? "";
     private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";
 
-    /// <summary>ดูรายการเคลมน้ำมัน</summary>
+    /// <summary>ดูรายการเคลมน้ำมัน</summary> http://localhost:3000/claim
     [HttpGet]
     public async Task<ActionResult<IEnumerable<FuelClaimDto>>> GetClaims([FromQuery] int? shipmentId = null)
     {
@@ -77,7 +77,7 @@ public class FuelClaimsController : ControllerBase
     }
 
     /// <summary>ส่งรายการเคลมน้ำมัน (Driver เท่านั้น)</summary>
-    [HttpPost]
+    [HttpPost] //roles driver, admin สามารถส่งเคลมได้ 
     [Authorize(Roles = "Driver,Admin")]
     public async Task<ActionResult<FuelClaimDto>> SubmitClaim([FromBody] CreateFuelClaimRequest request)
     {

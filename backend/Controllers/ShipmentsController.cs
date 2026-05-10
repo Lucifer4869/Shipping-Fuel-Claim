@@ -7,11 +7,11 @@ using ShippingAPI.DTOs;
 using ShippingAPI.Models;
 using ShippingAPI.Services;
 
-namespace ShippingAPI.Controllers;
+namespace ShippingAPI.Controllers; 
 
-[ApiController]
+[ApiController]//จัดการรายการเดินรถครับผม  เผื่อไปยื่นกับใช้สำหรับการเบิกหรือเคลมค่าน้ำมันครับผม โดยเก็บระยะทางข้อมูลการขนส่งไว้ครับผม โดยเอาระยะทางหรือตำแหน่งมากจาก gps
 [Route("api/shipments")]
-[Authorize]
+[Authorize] //ยืนยันตัวตนผู้ใช้
 public class ShipmentsController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -23,21 +23,21 @@ public class ShipmentsController : ControllerBase
         _audit = audit;
     }
 
-    private int GetUserId() => int.Parse(User.FindFirstValue("userId")!);
+    private int GetUserId() => int.Parse(User.FindFirstValue("userId")!); 
     private string GetUserName() => User.FindFirstValue("fullName") ?? "";
     private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";
 
-    /// <summary>ดูรายการเดินรถทั้งหมด (Admin/Manager/Finance เห็นทั้งหมด, Driver เห็นเฉพาะของตัวเอง)</summary>
+    /// <summary>ดูรายการเดินรถทั้งหมด (Admin/Manager/Finance เห็นทั้งหมด, Driver เห็นเฉพาะของตัวเองหรือ ID ของใครของมัน)</summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ShipmentDto>>> GetShipments()
     {
         var userId = GetUserId();
         var role = User.FindFirstValue(ClaimTypes.Role);
 
-        var query = _db.Shipments
-            .Include(s => s.Driver)
-            .Include(s => s.Withdrawals)
-            .Include(s => s.FuelClaims)
+        var query = _db.Shipments //รหัสการเดินรถ
+            .Include(s => s.Driver) //ชื่อผู้ขับขี่
+            .Include(s => s.Withdrawals) //จำนวนครั้งที่เบิก
+            .Include(s => s.FuelClaims) //จำนวนครั้งที่เคลม
             .AsQueryable();
 
         if (role == "Driver")
@@ -47,28 +47,28 @@ public class ShipmentsController : ControllerBase
             .OrderByDescending(s => s.CreatedAt)
             .Select(s => new ShipmentDto
             {
-                Id = s.Id,
-                TripNumber = s.TripNumber,
-                VehiclePlate = s.VehiclePlate,
-                DriverId = s.DriverId,
-                DriverName = s.Driver.FullName,
-                Origin = s.Origin,
-                OriginLat = s.OriginLat,
-                OriginLng = s.OriginLng,
-                Destination = s.Destination,
-                DestinationLat = s.DestinationLat,
-                DestinationLng = s.DestinationLng,
-                RouteDistanceKm = s.RouteDistanceKm,
-                SenderName = s.SenderName,
-                SenderPhone = s.SenderPhone,
-                ReceiverName = s.ReceiverName,
-                ReceiverPhone = s.ReceiverPhone,
-                StartMileage = s.StartMileage,
-                EndMileage = s.EndMileage,
-                Status = s.Status.ToString(),
-                CreatedAt = s.CreatedAt,
-                WithdrawalCount = s.Withdrawals.Count,
-                FuelClaimCount = s.FuelClaims.Count
+                Id = s.Id, //รหัสการเดินรถ
+                TripNumber = s.TripNumber, //เลขที่เดินรถ
+                VehiclePlate = s.VehiclePlate, //ทะเบียนรถ
+                DriverId = s.DriverId, //รหัสผู้ขับขี่
+                DriverName = s.Driver.FullName, //ชื่อผู้ขับขี่
+                Origin = s.Origin, //ต้นทาง
+                OriginLat = s.OriginLat, //ละติจูดต้นทาง
+                OriginLng = s.OriginLng, //ลองจิจูดต้นทาง
+                Destination = s.Destination, //ปลายทาง
+                DestinationLat = s.DestinationLat, //ละติจูดปลายทาง
+                DestinationLng = s.DestinationLng, //ลองจิจูดปลายทาง
+                RouteDistanceKm = s.RouteDistanceKm, //ระยะทาง
+                SenderName = s.SenderName, //ชื่อผู้ส่ง
+                SenderPhone = s.SenderPhone, //เบอร์โทรผู้ส่ง
+                ReceiverName = s.ReceiverName, //ชื่อผู้รับ
+                ReceiverPhone = s.ReceiverPhone, //เบอร์โทรผู้รับ
+                StartMileage = s.StartMileage, //เลขไมล์ตอนออก
+                EndMileage = s.EndMileage, //เลขไมล์ตอนกลับ
+                Status = s.Status.ToString(), //สถานะ
+                CreatedAt = s.CreatedAt, //วันที่สร้าง
+                WithdrawalCount = s.Withdrawals.Count,//จำนวนครั้งที่เบิก
+                FuelClaimCount = s.FuelClaims.Count//จำนวนครั้งที่เคลม
             })
             .ToListAsync();
 
@@ -82,30 +82,30 @@ public class ShipmentsController : ControllerBase
         var userId = GetUserId();
         var role = User.FindFirstValue(ClaimTypes.Role);
 
-        var s = await _db.Shipments
-            .Include(s => s.Driver)
-            .Include(s => s.Withdrawals)
-            .Include(s => s.FuelClaims)
-            .FirstOrDefaultAsync(s => s.Id == id);
+        var s = await _db.Shipments //รหัสการเดินรถ
+            .Include(s => s.Driver) //ชื่อผู้ขับขี่
+            .Include(s => s.Withdrawals) //จำนวนครั้งที่เบิก
+            .Include(s => s.FuelClaims) //จำนวนครั้งที่เคลม
+            .FirstOrDefaultAsync(s => s.Id == id); //รหัสการเดินรถ
 
         if (s == null) return NotFound();
         if (role == "Driver" && s.DriverId != userId) return Forbid();
 
         return Ok(new ShipmentDto
         {
-            Id = s.Id,
-            TripNumber = s.TripNumber,
-            VehiclePlate = s.VehiclePlate,
-            DriverId = s.DriverId,
-            DriverName = s.Driver.FullName,
-            Origin = s.Origin,
-            Destination = s.Destination,
-            StartMileage = s.StartMileage,
-            EndMileage = s.EndMileage,
-            Status = s.Status.ToString(),
-            CreatedAt = s.CreatedAt,
-            WithdrawalCount = s.Withdrawals.Count,
-            FuelClaimCount = s.FuelClaims.Count
+            Id = s.Id, //รหัสการเดินรถ
+            TripNumber = s.TripNumber, //เลขที่เดินรถ
+            VehiclePlate = s.VehiclePlate, //ทะเบียนรถ
+            DriverId = s.DriverId, //รหัสผู้ขับขี่
+            DriverName = s.Driver.FullName, //ชื่อผู้ขับขี่
+            Origin = s.Origin, //ต้นทาง
+            Destination = s.Destination, //ปลายทาง
+            StartMileage = s.StartMileage, //เลขไมล์ตอนออก
+            EndMileage = s.EndMileage, //เลขไมล์ตอนกลับ
+            Status = s.Status.ToString(), //สถานะ
+            CreatedAt = s.CreatedAt, //วันที่สร้าง
+            WithdrawalCount = s.Withdrawals.Count, //จำนวนครั้งที่เบิก
+            FuelClaimCount = s.FuelClaims.Count //จำนวนครั้งที่เคลม
         });
     }
 
@@ -114,60 +114,60 @@ public class ShipmentsController : ControllerBase
     [Authorize(Roles = "Driver,Admin")]
     public async Task<ActionResult<ShipmentDto>> CreateShipment([FromBody] CreateShipmentRequest request)
     {
-        var userId = GetUserId();
-        var tripNumber = $"TRP-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}";
+        var userId = GetUserId(); //รหัสผู้ใช้
+        var tripNumber = $"TRP-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}"; //เลขที่เดินรถ
 
         var shipment = new Shipment
         {
-            TripNumber = tripNumber,
-            VehiclePlate = request.VehiclePlate,
-            DriverId = userId,
-            Origin = request.Origin,
-            OriginLat = request.OriginLat,
-            OriginLng = request.OriginLng,
-            Destination = request.Destination,
-            DestinationLat = request.DestinationLat,
-            DestinationLng = request.DestinationLng,
-            RouteDistanceKm = request.RouteDistanceKm,
-            SenderName = request.SenderName,
-            SenderPhone = request.SenderPhone,
-            ReceiverName = request.ReceiverName,
-            ReceiverPhone = request.ReceiverPhone,
-            StartMileage = request.StartMileage,
-            CreatedAt = DateTime.UtcNow
+            TripNumber = tripNumber, //เลขที่เดินรถ
+            VehiclePlate = request.VehiclePlate, //ทะเบียนรถ
+            DriverId = userId, //รหัสผู้ขับขี่
+            Origin = request.Origin, //ต้นทาง
+            OriginLat = request.OriginLat, //ละติจูดต้นทาง
+            OriginLng = request.OriginLng, //ลองจิจูดต้นทาง
+            Destination = request.Destination, //ปลายทาง
+            DestinationLat = request.DestinationLat, //ละติจูดปลายทาง
+            DestinationLng = request.DestinationLng, //ลองจิจูดปลายทาง
+            RouteDistanceKm = request.RouteDistanceKm, //ระยะทาง
+            SenderName = request.SenderName, //ชื่อผู้ส่ง
+            SenderPhone = request.SenderPhone, //เบอร์โทรผู้ส่ง
+            ReceiverName = request.ReceiverName, //ชื่อผู้รับ
+            ReceiverPhone = request.ReceiverPhone, //เบอร์โทรผู้รับ
+            StartMileage = request.StartMileage, //เลขไมล์ตอนออก
+            CreatedAt = DateTime.UtcNow //วันที่สร้าง
         };
 
-        _db.Shipments.Add(shipment);
-        await _db.SaveChangesAsync();
+        _db.Shipments.Add(shipment); //เพิ่มข้อมูลการเดินรถ
+        await _db.SaveChangesAsync(); //บันทึกข้อมูลการเดินรถ
 
-        await _audit.LogAsync("Shipments", shipment.Id, "CREATE", null, request, userId, GetUserName(), GetUserRole());
+        await _audit.LogAsync("Shipments", shipment.Id, "CREATE", null, request, userId, GetUserName(), GetUserRole()); //เพิ่มข้อมูลการเดินรถ
 
-        var driver = await _db.Users.FindAsync(userId);
+        var driver = await _db.Users.FindAsync(userId); //รหัสผู้ใช้
         return CreatedAtAction(nameof(GetShipment), new { id = shipment.Id }, new ShipmentDto
         {
-            Id = shipment.Id,
-            TripNumber = shipment.TripNumber,
-            VehiclePlate = shipment.VehiclePlate,
-            DriverId = shipment.DriverId,
-            DriverName = driver?.FullName ?? "",
-            Origin = shipment.Origin,
-            OriginLat = shipment.OriginLat,
-            OriginLng = shipment.OriginLng,
-            Destination = shipment.Destination,
-            DestinationLat = shipment.DestinationLat,
-            DestinationLng = shipment.DestinationLng,
-            RouteDistanceKm = shipment.RouteDistanceKm,
-            SenderName = shipment.SenderName,
-            SenderPhone = shipment.SenderPhone,
-            ReceiverName = shipment.ReceiverName,
-            ReceiverPhone = shipment.ReceiverPhone,
-            StartMileage = shipment.StartMileage,
-            Status = shipment.Status.ToString(),
-            CreatedAt = shipment.CreatedAt
+            Id = shipment.Id, //รหัสการเดินรถ
+            TripNumber = shipment.TripNumber, //เลขที่เดินรถ
+            VehiclePlate = shipment.VehiclePlate, //ทะเบียนรถ
+            DriverId = shipment.DriverId, //รหัสผู้ขับขี่
+            DriverName = driver?.FullName ?? "", //ชื่อผู้ขับขี่
+            Origin = shipment.Origin, //ต้นทาง
+            OriginLat = shipment.OriginLat, //ละติจูดต้นทาง
+            OriginLng = shipment.OriginLng, //ลองจิจูดต้นทาง
+            Destination = shipment.Destination, //ปลายทาง
+            DestinationLat = shipment.DestinationLat, //ละติจูดปลายทาง
+            DestinationLng = shipment.DestinationLng, //ลองจิจูดปลายทาง
+            RouteDistanceKm = shipment.RouteDistanceKm, //ระยะทาง
+            SenderName = shipment.SenderName, //ชื่อผู้ส่ง
+            SenderPhone = shipment.SenderPhone, //เบอร์โทรผู้ส่ง
+            ReceiverName = shipment.ReceiverName, //ชื่อผู้รับ
+            ReceiverPhone = shipment.ReceiverPhone, //เบอร์โทรผู้รับ
+            StartMileage = shipment.StartMileage, //เลขไมล์ตอนออก
+            Status = shipment.Status.ToString(), //สถานะ
+            CreatedAt = shipment.CreatedAt //วันที่สร้าง
         });
     }
 
-    /// <summary>อัปเดตข้อมูลเดินรถ</summary>
+    /// <summary>อัปเดตข้อมูลเดินรถ</summary> เอาไว้แก้ไขการข้อมูลการเดินรถ
     [HttpPut("{id}")]
     [Authorize(Roles = "Driver,Admin")]
     public async Task<IActionResult> UpdateShipment(int id, [FromBody] UpdateShipmentRequest request)
@@ -217,7 +217,7 @@ public class ShipmentsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>อัปเดตสถานะเดินรถ</summary>
+    /// <summary>อัปเดตสถานะเดินรถ</summary>  //เอาไว้ยื่นยันสถานะในการเดินรถ ว่าถึงที่หมายแล้ว
     [HttpPatch("{id}/complete")]
     [Authorize(Roles = "Driver,Admin")]
     public async Task<IActionResult> CompleteShipment(int id, [FromBody] double endMileage)

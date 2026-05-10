@@ -3,9 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ShippingAPI.Controllers;
 
-[ApiController]
+[ApiController] //เป็นตัวจัดการการอัปโหลดไฟล์ เอาไว้อัปโหลดบิลไฟล์เอกสารต่างๆครับ
 [Route("api/uploads")]
-[Authorize]
+[Authorize] //ยืนยันตัวตนผู้ใช้
 public class UploadsController : ControllerBase
 {
     private readonly IWebHostEnvironment _env;
@@ -15,7 +15,7 @@ public class UploadsController : ControllerBase
         _env = env;
     }
 
-    [HttpPost]
+    [HttpPost] //เป็นตัวจัดการการอัปโหลดไฟล์
     public async Task<IActionResult> UploadFile(IFormFile file)
     {
         if (file == null || file.Length == 0)

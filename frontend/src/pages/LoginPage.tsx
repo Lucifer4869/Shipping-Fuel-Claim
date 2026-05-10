@@ -24,8 +24,9 @@ export default function LoginPage() {
       await login(username, password);
       toast.success('เข้าสู่ระบบสำเร็จ!');
       navigate('/dashboard');
-    } catch {
-      toast.error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -38,8 +39,9 @@ export default function LoginPage() {
       await googleLoginUser(credentialResponse.credential);
       toast.success('เข้าสู่ระบบด้วย Google สำเร็จ!');
       navigate('/dashboard');
-    } catch {
-      toast.error('เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ';
+      toast.error(message);
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace ShippingAPI.Controllers;
 
-[ApiController]
+[ApiController] // controller สำหรับดึงข้อมูลจากภายนอก ครับ
 [Route("api/[controller]")]
 public class ExternalDataController : ControllerBase
 {
@@ -14,7 +14,7 @@ public class ExternalDataController : ControllerBase
         _httpClientFactory = httpClientFactory;
     }
 
-    [HttpGet("oil-price")]
+    [HttpGet("oil-price")] //api นี้ได้ราคาน้ำมันดีเซลจากเว็บ kapook ครับผม เพื่อให้ตรงกับข้อมูลราคากับปัจจุบัน
     public async Task<IActionResult> GetOilPrice()
     {
         try
