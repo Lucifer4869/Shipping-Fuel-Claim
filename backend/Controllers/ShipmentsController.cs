@@ -168,18 +168,18 @@ public class ShipmentsController : ControllerBase
     }
 
     /// <summary>อัปเดตข้อมูลเดินรถ</summary> เอาไว้แก้ไขการข้อมูลการเดินรถ
-    [HttpPut("{id}")]
-    [Authorize(Roles = "Driver,Admin")]
-    public async Task<IActionResult> UpdateShipment(int id, [FromBody] UpdateShipmentRequest request)
+    [HttpPut("{id}")]//แก้ไขข้อมูลเดินรถ
+    [Authorize(Roles = "Driver,Admin")]//ใช้ได้เฉพาะ driver กับ admin
+    public async Task<IActionResult> UpdateShipment(int id, [FromBody] UpdateShipmentRequest request)//อัปเดตข้อมูลเดินรถ
     {
-        var userId = GetUserId();
-        var role = User.FindFirstValue(ClaimTypes.Role);
-        var shipment = await _db.Shipments.FindAsync(id);
+        var userId = GetUserId();//id ของผู้ใช้
+        var role = User.FindFirstValue(ClaimTypes.Role);//บทบาทของผู้ใช้
+        var shipment = await _db.Shipments.FindAsync(id);//id ของรายการเดินรถ
 
-        if (shipment == null) return NotFound();
-        if (role == "Driver" && shipment.DriverId != userId) return Forbid();
-        if (shipment.Status != ShipmentStatus.Active && role != "Admin") 
-            return BadRequest(new { message = "ไม่สามารถแก้ไขการเดินรถที่เสร็จสิ้นหรือยกเลิกแล้วได้" });
+        if (shipment == null) return NotFound();//ไม่พบข้อมูล
+        if (role == "Driver" && shipment.DriverId != userId) return Forbid();//ถ้าเป็น driver กับ shipment.DriverId ไม่ใช่ userId ให้ return Forbid()
+        if (shipment.Status != ShipmentStatus.Active && role != "Admin") //ถ้าเป็น shipment.Status Active กับ role ไม่ใช่ Admin ให้ return BadRequest()
+            return BadRequest(new { message = "ไม่สามารถแก้ไขการเดินรถที่เสร็จสิ้นหรือยกเลิกแล้วได้" });//ถ้าไม่สามารถแก้ไขการเดินรถที่เสร็จสิ้นหรือยกเลิกแล้วได้
 
         var oldValues = new { 
             shipment.VehiclePlate, shipment.Origin, shipment.Destination, 
@@ -187,25 +187,25 @@ public class ShipmentsController : ControllerBase
             shipment.StartMileage 
         };
 
-        if (!string.IsNullOrEmpty(request.VehiclePlate)) shipment.VehiclePlate = request.VehiclePlate;
-        if (!string.IsNullOrEmpty(request.Origin)) shipment.Origin = request.Origin;
-        if (request.OriginLat.HasValue) shipment.OriginLat = request.OriginLat;
-        if (request.OriginLng.HasValue) shipment.OriginLng = request.OriginLng;
-        if (!string.IsNullOrEmpty(request.Destination)) shipment.Destination = request.Destination;
-        if (request.DestinationLat.HasValue) shipment.DestinationLat = request.DestinationLat;
-        if (request.DestinationLng.HasValue) shipment.DestinationLng = request.DestinationLng;
-        if (request.RouteDistanceKm.HasValue) shipment.RouteDistanceKm = request.RouteDistanceKm;
+        if (!string.IsNullOrEmpty(request.VehiclePlate)) shipment.VehiclePlate = request.VehiclePlate;//ทะเบียนรถ
+        if (!string.IsNullOrEmpty(request.Origin)) shipment.Origin = request.Origin;//ต้นทาง
+        if (request.OriginLat.HasValue) shipment.OriginLat = request.OriginLat;//ละติจูดต้นทาง
+        if (request.OriginLng.HasValue) shipment.OriginLng = request.OriginLng;//ลองจิจูดต้นทาง
+        if (!string.IsNullOrEmpty(request.Destination)) shipment.Destination = request.Destination;//ปลายทาง
+        if (request.DestinationLat.HasValue) shipment.DestinationLat = request.DestinationLat;//ละติจูดปลายทาง
+        if (request.DestinationLng.HasValue) shipment.DestinationLng = request.DestinationLng;//ลองจิจูดปลายทาง
+        if (request.RouteDistanceKm.HasValue) shipment.RouteDistanceKm = request.RouteDistanceKm;//ระยะทาง
         
-        if (request.SenderName != null) shipment.SenderName = request.SenderName;
-        if (request.SenderPhone != null) shipment.SenderPhone = request.SenderPhone;
-        if (request.ReceiverName != null) shipment.ReceiverName = request.ReceiverName;
-        if (request.ReceiverPhone != null) shipment.ReceiverPhone = request.ReceiverPhone;
+        if (request.SenderName != null) shipment.SenderName = request.SenderName;//ชื่อผู้ส่ง
+        if (request.SenderPhone != null) shipment.SenderPhone = request.SenderPhone;//เบอร์โทรผู้ส่ง
+        if (request.ReceiverName != null) shipment.ReceiverName = request.ReceiverName;//ชื่อผู้รับ
+        if (request.ReceiverPhone != null) shipment.ReceiverPhone = request.ReceiverPhone;//เบอร์โทรผู้รับ
         
-        if (request.StartMileage.HasValue) shipment.StartMileage = request.StartMileage.Value;
+        if (request.StartMileage.HasValue) shipment.StartMileage = request.StartMileage.Value;//เลขไมล์ตอนออก
 
-        shipment.UpdatedAt = DateTime.UtcNow;
+        shipment.UpdatedAt = DateTime.UtcNow;//วันเวลาที่แก้ไข
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync();//บันทึกข้อมูลลงฐานข้อมูล
 
         var newValues = new { 
             shipment.VehiclePlate, shipment.Origin, shipment.Destination, 
@@ -218,46 +218,46 @@ public class ShipmentsController : ControllerBase
     }
 
     /// <summary>อัปเดตสถานะเดินรถ</summary>  //เอาไว้ยื่นยันสถานะในการเดินรถ ว่าถึงที่หมายแล้ว
-    [HttpPatch("{id}/complete")]
-    [Authorize(Roles = "Driver,Admin")]
-    public async Task<IActionResult> CompleteShipment(int id, [FromBody] double endMileage)
+    [HttpPatch("{id}/complete")]//อัปเดตสถานะเดินรถ
+    [Authorize(Roles = "Driver,Admin")]//ใช้ได้เฉพาะ driver กับ admin
+    public async Task<IActionResult> CompleteShipment(int id, [FromBody] double endMileage)//อัปเดตสถานะเดินรถ
     {
-        var userId = GetUserId();
-        var role = GetUserRole();
-        var shipment = await _db.Shipments.FindAsync(id);
+        var userId = GetUserId();//id ของผู้ใช้
+        var role = GetUserRole();//บทบาทของผู้ใช้
+        var shipment = await _db.Shipments.FindAsync(id);//id ของรายการเดินรถ
 
-        if (shipment == null) return NotFound();
+        if (shipment == null) return NotFound();//ไม่พบข้อมูล
         
         // Admin สามารถปิดงานได้ทุกคน, Driver ปิดได้เฉพาะงานตัวเอง
-        if (role != "Admin" && shipment.DriverId != userId) return Forbid();
+        if (role != "Admin" && shipment.DriverId != userId) return Forbid();//ถ้าเป็น driver กับ shipment.DriverId ไม่ใช่ userId ให้ return Forbid()
         
-        if (shipment.Status != ShipmentStatus.Active) return BadRequest(new { message = "การเดินรถนี้ไม่ได้อยู่ในสถานะ Active" });
+        if (shipment.Status != ShipmentStatus.Active) return BadRequest(new { message = "การเดินรถนี้ไม่ได้อยู่ในสถานะ Active" });//ถ้าไม่สามารถแก้ไขการเดินรถที่เสร็จสิ้นหรือยกเลิกแล้วได้
 
-        var oldStatus = shipment.Status;
-        shipment.Status = ShipmentStatus.Completed;
-        shipment.EndMileage = endMileage;
-        shipment.UpdatedAt = DateTime.UtcNow;
+        var oldStatus = shipment.Status;//oldStatus = status ปัจจุบัน
+        shipment.Status = ShipmentStatus.Completed;//status = completed
+        shipment.EndMileage = endMileage;//เลขไมล์ตอนออก
+        shipment.UpdatedAt = DateTime.UtcNow;//วันเวลาที่แก้ไข
 
-        await _db.SaveChangesAsync();
-        await _audit.LogAsync("Shipments", id, "UPDATE",
+        await _db.SaveChangesAsync();//บันทึกข้อมูลลงฐานข้อมูล
+        await _audit.LogAsync("Shipments", id, "UPDATE",//id ของรายการเดินรถ
             new { Status = oldStatus.ToString() },
             new { Status = "Completed", EndMileage = endMileage },
-            userId, GetUserName(), GetUserRole());
+            userId, GetUserName(), GetUserRole());//id ของผู้ใช้,ชื่อผู้ใช้,บทบาทของผู้ใช้
 
         return NoContent();
     }
 
     /// <summary>ลบข้อมูลการเดินรถ (Admin เท่านั้น)</summary>
-    [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteShipment(int id)
+    [HttpDelete("{id}")]//ลบข้อมูลการเดินรถ
+    [Authorize(Roles = "Admin")]//ใช้ได้เฉพาะ admin
+    public async Task<IActionResult> DeleteShipment(int id)//ลบข้อมูลการเดินรถ
     {
-        var shipment = await _db.Shipments
-            .Include(s => s.Withdrawals)
-            .Include(s => s.FuelClaims)
-            .FirstOrDefaultAsync(s => s.Id == id);
+        var shipment = await _db.Shipments//id ของรายการเดินรถ
+            .Include(s => s.Withdrawals)//id ของการเบิก
+            .Include(s => s.FuelClaims)//id ของการเติมน้ำมัน
+            .FirstOrDefaultAsync(s => s.Id == id);//id ของรายการเดินรถ
 
-        if (shipment == null) return NotFound();
+        if (shipment == null) return NotFound();//ไม่พบข้อมูล
 
         // Remove associated records first to avoid foreign key violations
         if (shipment.Withdrawals.Any())

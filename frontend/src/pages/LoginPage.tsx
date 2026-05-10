@@ -5,11 +5,18 @@ import { GoogleLogin, CredentialResponse } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import { Truck, Lock, User, Eye, EyeOff } from 'lucide-react';
 
+// --- หน้าล็อกอิน (Login Page) ---
+// หน้าแรกของระบบสำหรับให้พนักงานทุกคนยืนยันตัวตนก่อนเข้าใช้งาน
 export default function LoginPage() {
+  // State สำหรับเก็บข้อมูล Username และ Password
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  // State สำหรับเปิด/ปิดการมองเห็นรหัสผ่าน
   const [showPassword, setShowPassword] = useState(false);
+  // State สำหรับสถานะกำลังโหลด (แสดงตอนกดปุ่มล็อกอิน)
   const [loading, setLoading] = useState(false);
+  
+  // ดึงฟังก์ชัน login และ googleLoginUser มาจาก AuthContext
   const { login, googleLoginUser } = useAuth();
   const navigate = useNavigate();
 

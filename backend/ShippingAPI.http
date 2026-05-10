@@ -1,21 +1,21 @@
 ### ==========================================================
-### Shipping Management System — HTTP API Test File
+### Shipping Management System — EXHAUSTIVE HTTP API TEST
 ### ==========================================================
-### วิธีใช้: รัน dotnet run ใน /backend ก่อน แล้วรัน request ด้วย
-###          VS Code REST Client extension หรือ JetBrains HTTP Client
+### สำหรับ: คุณเบนซ์ (Assistant: Antigravity)
+### วิธีใช้: 
+### 1. รัน Backend ก่อน
+### 2. Login เพื่อเอา Token มาใส่ในตัวแปร @token
 ### ==========================================================
 
 @baseUrl = http://localhost:5000
 @contentType = application/json
-
-### ตัวแปร JWT Token (copy จาก response ของ /api/auth/login มาวางตรงนี้)
 @token = PASTE_YOUR_TOKEN_HERE
 
-### ============================================================
-### 1. AUTHENTICATION
-### ============================================================
+### ------------------------------------------------------------
+### 1. AUTHENTICATION (การยืนยันตัวตน)
+### ------------------------------------------------------------
 
-### 1.1 Login — Admin
+# 1.1 ล็อกอินปกติ (Admin/Driver/Manager/Finance)
 POST {{baseUrl}}/api/auth/login
 Content-Type: {{contentType}}
 
@@ -26,51 +26,38 @@ Content-Type: {{contentType}}
 
 ###
 
-### 1.2 Login — Driver
-POST {{baseUrl}}/api/auth/login
+# 1.2 ล็อกอินผ่าน Google (ต้องใช้ idToken จาก Google SDK)
+POST {{baseUrl}}/api/auth/google-login
 Content-Type: {{contentType}}
 
 {
-  "username": "driver01",
-  "password": "driver123"
+  "idToken": "YOUR_GOOGLE_ID_TOKEN"
 }
 
 ###
 
-### 1.3 Login — Manager
-POST {{baseUrl}}/api/auth/login
-Content-Type: {{contentType}}
+# 1.3 ดูข้อมูลโปรไฟล์ตัวเอง (เช็ค Token ว่ายังใช้ได้ไหม)
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{token}}
 
-{
-  "username": "manager01",
-  "password": "manager123"
-}
 
-###
+### ------------------------------------------------------------
+### 2. SHIPMENTS (การจัดการรายการเดินรถ)
+### ------------------------------------------------------------
 
-### 1.4 Login — Finance
-POST {{baseUrl}}/api/auth/login
-Content-Type: {{contentType}}
-
-{
-  "username": "finance01",
-  "password": "finance123"
-}
-
-###
-
-### ============================================================
-### 2. SHIPMENTS (การเดินรถ)
-### ============================================================
-
-### 2.1 ดูรายการเดินรถทั้งหมด
+# 2.1 ดูรายการเดินรถทั้งหมด (Driver เห็นเฉพาะของตน, คนอื่นเห็นหมด)
 GET {{baseUrl}}/api/shipments
-Accept: {{contentType}}
 Authorization: Bearer {{token}}
 
 ###
 
-### 2.2 สร้างเดินรถใหม่ (Driver)
+# 2.2 ดูรายละเอียดเดินรถแบบเจาะจงรายตัว
+GET {{baseUrl}}/api/shipments/1
+Authorization: Bearer {{token}}
+
+###
+
+# 2.3 สร้างรายการเดินรถใหม่ (Driver/Admin)
 POST {{baseUrl}}/api/shipments
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
@@ -78,39 +65,59 @@ Authorization: Bearer {{token}}
 {
   "vehiclePlate": "กข 1234",
   "origin": "กรุงเทพ",
+  "originLat": 13.7563,
+  "originLng": 100.5018,
   "destination": "เชียงใหม่",
+  "destinationLat": 18.7883,
+  "destinationLng": 98.9853,
+  "routeDistanceKm": 680.5,
+  "senderName": "บจก. ค้าขายดี",
+  "senderPhone": "0812345678",
+  "receiverName": "คุณสมชาย",
+  "receiverPhone": "0898765432",
   "startMileage": 52000
 }
 
 ###
 
-### 2.3 ปิดการเดินรถ (Complete)
+# 2.4 แก้ไขข้อมูลเดินรถ (เฉพาะงานที่ยังไม่จบ)
+PUT {{baseUrl}}/api/shipments/1
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "origin": "กรุงเทพ (คลองเตย)",
+  "destination": "เชียงใหม่ (ดอยสุเทพ)",
+  "startMileage": 52005
+}
+
+###
+
+# 2.5 ปิดงานเดินรถ (บันทึกเลขไมล์ตอนถึงที่หมาย)
 PATCH {{baseUrl}}/api/shipments/1/complete
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
-52500
+52750
 
 ###
 
-### 2.4 ลบการเดินรถ (Admin Only)
+# 2.6 ลบรายการเดินรถ (Admin Only - จะลบประวัติการเบิกและเคลมที่ผูกอยู่ด้วยทั้งหมด)
 DELETE {{baseUrl}}/api/shipments/1
 Authorization: Bearer {{token}}
 
-###
 
-### ============================================================
-### 3. WITHDRAWALS (ขอเบิกเงิน)
-### ============================================================
+### ------------------------------------------------------------
+### 3. WITHDRAWALS (การเบิกเงินล่วงหน้า)
+### ------------------------------------------------------------
 
-### 3.1 ดูรายการขอเบิกเงินทั้งหมด
-GET {{baseUrl}}/api/withdrawals
-Accept: {{contentType}}
+# 3.1 ดูรายการเบิกเงินทั้งหมด (กรองตาม ShipmentId ได้)
+GET {{baseUrl}}/api/withdrawals?shipmentId=1
 Authorization: Bearer {{token}}
 
 ###
 
-### 3.2 ส่งรายการขอเบิกเงิน (Driver)
+# 3.2 สร้างรายการขอเบิกเงิน (Driver/Admin)
 POST {{baseUrl}}/api/withdrawals
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
@@ -118,151 +125,164 @@ Authorization: Bearer {{token}}
 {
   "shipmentId": 1,
   "amount": 2500.00,
-  "reason": "ค่าน้ำมันและค่าอาหาร",
-  "additionalItems": "ค่าทางด่วน 120 บาท"
+  "reason": "ค่าน้ำมันสำรองจ่าย",
+  "additionalItems": "ค่าเบี้ยเลี้ยงคนขับ"
 }
 
 ###
 
-### 3.3 Manager อนุมัติ (Manager/Admin)
+# 3.3 ผู้จัดการอนุมัติ/ปฏิเสธ (Manager/Admin)
 PATCH {{baseUrl}}/api/withdrawals/1/approve
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
 {
   "isApproved": true,
-  "note": "อนุมัติโดย Manager"
+  "note": "อนุมัติให้เบิกได้ตามความจำเป็น"
 }
 
 ###
 
-### 3.4 Finance อนุมัติ (Finance/Admin)
+# 3.4 การเงินอนุมัติขั้นสุดท้าย/แจ้งโอนเงิน (Finance/Admin)
 PATCH {{baseUrl}}/api/withdrawals/1/finance-approve
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
 {
   "isApproved": true,
-  "note": "อนุมัติโดย Finance"
+  "note": "โอนเงินเข้าบัญชีเรียบร้อยแล้ว"
 }
 
 ###
 
-### 3.5 ลบรายการขอเบิก (Admin Only)
+# 3.5 ลบรายการขอเบิก (Admin Only)
 DELETE {{baseUrl}}/api/withdrawals/1
 Authorization: Bearer {{token}}
 
-###
 
-### ============================================================
-### 4. FUEL CLAIMS (เคลมน้ำมัน)
-### ============================================================
+### ------------------------------------------------------------
+### 4. FUEL CLAIMS (การเคลมค่าน้ำมันหลังจบคดี)
+### ------------------------------------------------------------
 
-### 4.1 ดูรายการเคลมน้ำมันทั้งหมด
+# 4.1 ดูรายการเคลมน้ำมันทั้งหมด
 GET {{baseUrl}}/api/claims
-Accept: {{contentType}}
 Authorization: Bearer {{token}}
 
 ###
 
-### 4.2 ส่งรายการเคลมน้ำมัน (Driver)
+# 4.2 ส่งรายการเคลมน้ำมัน (Driver/Admin)
 POST {{baseUrl}}/api/claims
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
 {
   "shipmentId": 1,
-  "claimAmount": 1850.00,
-  "receiptUrl": "http://localhost:5000/uploads/test-receipt.jpg",
+  "claimAmount": 1200.50,
+  "receiptUrl": "/uploads/test-receipt.jpg",
   "mileageOut": 52000,
   "mileageIn": 52750
 }
 
 ###
 
-### 4.3 Manager อนุมัติ (Manager/Admin)
+# 4.3 ผู้จัดการตรวจสอบเคลม (Manager/Admin)
 PATCH {{baseUrl}}/api/claims/1/approve
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
 {
   "isApproved": true,
-  "note": "อนุมัติโดย Manager"
+  "note": "ใบเสร็จชัดเจน ระยะทางตรงกับ GPS"
 }
 
 ###
 
-### 4.4 Finance อนุมัติ (Finance/Admin)
+# 4.4 การเงินอนุมัติเคลมขั้นสุดท้าย (Finance/Admin)
 PATCH {{baseUrl}}/api/claims/1/finance-approve
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
 {
   "isApproved": true,
-  "note": "อนุมัติโดย Finance"
+  "note": "จ่ายเงินคืนเข้ากระเป๋าเงินดิจิทัลเรียบร้อย"
 }
 
 ###
 
-### 4.5 ลบรายการเคลมน้ำมัน (Admin Only)
+# 4.5 ลบรายการเคลม (Admin Only)
 DELETE {{baseUrl}}/api/claims/1
 Authorization: Bearer {{token}}
 
-###
 
-### ============================================================
-### 5. USERS (การจัดการผู้ใช้ — Admin Only)
-### ============================================================
+### ------------------------------------------------------------
+### 5. USERS MANAGEMENT (การจัดการผู้ใช้งาน - Admin Only)
+### ------------------------------------------------------------
 
-### 5.1 ดูรายชื่อผู้ใช้ทั้งหมด
+# 5.1 ดูรายชื่อผู้ใช้ทั้งหมด
 GET {{baseUrl}}/api/users
 Authorization: Bearer {{token}}
 
 ###
 
-### 5.2 สร้างผู้ใช้ใหม่
+# 5.2 สร้างผู้ใช้งานใหม่ (Driver=0, Manager=1, Finance=2, Admin=3)
 POST {{baseUrl}}/api/users
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
 {
-  "username": "newdriver",
-  "password": "password123",
-  "fullName": "นายทดสอบ ขยันขับ",
-  "role": 1,
-  "vehiclePlate": "ถถ 4444"
+  "username": "benz_driver",
+  "password": "benzpassword",
+  "fullName": "คุณเบนซ์ สายซิ่ง",
+  "role": "Driver",
+  "vehiclePlate": "เบนซ์ 999"
 }
 
 ###
 
-### 5.3 ลบผู้ใช้
+# 5.3 อัปเดตข้อมูลผู้ใช้ (เปลี่ยนรหัสผ่าน, บทบาท, หรือระงับการใช้งาน)
+PUT {{baseUrl}}/api/users/2
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "fullName": "คุณเบนซ์ (แก้ไขชื่อ)",
+  "isActive": true,
+  "role": "Manager"
+}
+
+###
+
+# 5.4 ลบผู้ใช้ (ห้ามลบ Admin หลัก ID 1)
 DELETE {{baseUrl}}/api/users/5
 Authorization: Bearer {{token}}
 
-###
 
-### ============================================================
-### 6. AUDIT LOGS (Admin เท่านั้น)
-### ============================================================
+### ------------------------------------------------------------
+### 6. AUDIT LOGS & EXTERNAL DATA (ประวัติและข้อมูลภายนอก)
+### ------------------------------------------------------------
 
-### 6.1 ดู Audit Log ทั้งหมด
-GET {{baseUrl}}/api/audit-logs
+# 6.1 ดูประวัติการใช้งาน (Audit Logs) แบบละเอียดพร้อม Filter
+# ตัวแปร: tableName, action, performedByRole, performedByName, page, pageSize
+GET {{baseUrl}}/api/audit-logs?tableName=Shipments&page=1&pageSize=10
 Authorization: Bearer {{token}}
 
 ###
 
-### 6.2 Filter by ตาราง
-GET {{baseUrl}}/api/audit-logs?tableName=Shipments
+# 6.2 กรองประวัติด้วยชื่อผู้กระทำ (รองรับภาษาไทย)
+GET {{baseUrl}}/api/audit-logs?performedByName= Admin
 Authorization: Bearer {{token}}
 
 ###
 
-### ============================================================
-### 7. UPLOADS (อัปโหลดรูปภาพ)
-### ============================================================
+# 6.3 ดึงราคาน้ำมันดีเซล PTT ปัจจุบัน (ดึงสดจาก Kapook)
+GET {{baseUrl}}/api/externaldata/oil-price
 
-### 7.1 อัปโหลดไฟล์ (ต้องใช้ Multipart Form-Data - แนะนำใช้หน้าเว็บทดสอบ)
-### สำหรับ REST Client สามารถใช้ syntax พิเศษได้ (ถ้า extension รองรับ)
+
+### ------------------------------------------------------------
+### 7. UPLOADS (ระบบอัปโหลดไฟล์)
+### ------------------------------------------------------------
+
+# 7.1 อัปโหลดรูปใบเสร็จ (แนะนำใช้ผ่านหน้าเว็บ แต่อันนี้เป็นโครงสร้าง API)
 POST {{baseUrl}}/api/uploads
 Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=boundary
@@ -273,5 +293,3 @@ Content-Type: image/jpeg
 
 < ./test-receipt.jpg
 --boundary--
-
-###

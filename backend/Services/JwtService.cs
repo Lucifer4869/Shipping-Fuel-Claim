@@ -6,22 +6,22 @@ using ShippingAPI.Models;
 
 namespace ShippingAPI.Services;
 
-public class JwtService
+public class JwtService //ส่วนของการสร้าง token สำหรับการยืนยันตัวตน
 {
-    private readonly IConfiguration _config;
+    private readonly IConfiguration _config;//เป็นคลาสสำหรับอ่านค่าการตั้งค่าต่างๆจากไฟล์ appsettings.json
 
     public JwtService(IConfiguration config)
     {
-        _config = config;
+        _config = config;//อ่านค่าการตั้งค่าต่างๆจากไฟล์ appsettings.json
     }
 
-    public string GenerateToken(User user)
+    public string GenerateToken(User user) //ส่วนของการสร้าง token
     {
-        var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var jwtKey = _config["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured"); //อ่านค่า key จาก appsettings.json
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)); //แปลง key เป็น byte array
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); //สร้าง credentials
 
-        var claims = new[]
+        var claims = new[] //สร้าง claims
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),

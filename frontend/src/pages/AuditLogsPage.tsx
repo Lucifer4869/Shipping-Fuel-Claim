@@ -4,15 +4,15 @@ import toast from 'react-hot-toast';
 import { ClipboardList, Search } from 'lucide-react';
 
 interface AuditLog {
-  id: number; 
-  tableName: string; 
-  recordId: number; 
-  action: string;
-  oldValue?: string; 
-  newValue?: string; 
-  performedByName: string; 
-  performedByRole?: string;
-  createdAt: string;
+  id: number; // รหัสประจำตัวของ Log
+  tableName: string; // ชื่อตารางที่ถูกแก้ไข (เช่น Shipments, Users)
+  recordId: number; // รหัสประจำตัวของข้อมูลที่ถูกแก้ไข
+  action: string; // ชนิดของการแก้ไข (CREATE, UPDATE, DELETE)
+  oldValue?: string; // ค่าเดิมก่อนแก้ไข (ถ้ามี)
+  newValue?: string; // ค่าใหม่หลังแก้ไข (ถ้ามี)
+  performedByName: string; // ชื่อผู้ใช้งานที่ทำการแก้ไข
+  performedByRole?: string; // บทบาทของผู้ใช้งานที่ทำการแก้ไข
+  createdAt: string; // วันที่และเวลาที่ทำการแก้ไข
 }
 
 const actionColors: Record<string, string> = {
@@ -21,9 +21,14 @@ const actionColors: Record<string, string> = {
   DELETE: 'bg-red-500/20 text-red-400',
 };
 
+// --- หน้า Audit Logs (ประวัติการใช้งาน) ---
+// ส่วนนี้ใช้สำหรับให้ Admin ตรวจสอบย้อนหลังว่าใครทำอะไรในระบบบ้าง
 export default function AuditLogsPage() {
+  // State สำหรับเก็บรายการ Log ที่ดึงมาจาก Server
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  // State สำหรับแสดงสถานะการโหลด
   const [loading, setLoading] = useState(true);
+  // State สำหรับเก็บค่าตัวกรอง (ค้นหาตามชื่อคนทำ, ชื่อตาราง, หรือการกระทำ)
   const [filter, setFilter] = useState({ performedByName: '', tableName: '', action: '' });
 
   const fetchLogs = async () => {

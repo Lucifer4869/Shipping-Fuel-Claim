@@ -4,13 +4,13 @@ using ShippingAPI.Models;
 
 namespace ShippingAPI.Services;
 
-public class AuditService
+public class AuditService //ระบบตรวจสอบการทำงานของผ้ใช้ในแอปพลิเคชันของเรา
 {
-    private readonly AppDbContext _db;
+    private readonly AppDbContext _db; //สร้างตัวเชื่อมต่อฐานข้อมูล
 
-    public AuditService(AppDbContext db)
-    {
-        _db = db;
+    public AuditService(AppDbContext db) //ตัวเชื่อมต่อฐานข้อมูล
+    { 
+        _db = db; //เชื่อมต่อฐานข้อมูล
     }
 
     public async Task LogAsync(
@@ -23,7 +23,7 @@ public class AuditService
         string performedByName,
         string performedByRole)
     {
-        var log = new AuditLog
+        var log = new AuditLog //สร้างตาราง Log
         {
             TableName = tableName,
             RecordId = recordId,

@@ -14,13 +14,20 @@ const formatDateAD = (date: Date | string) => {
   return `${day}/${month}/${year}`;
 };
 
+// --- หน้าออกรายงานสรุปยอด (Daily Reports) ---
+// ส่วนนี้ใช้สำหรับสรุปข้อมูลการเงิน (เบิกเงิน + เคลมน้ำมัน) ออกมาเป็นรูปแบบตารางบัญชีเพื่อพิมพ์หรือบันทึกเป็น PDF
 export default function ReportsPage() {
+  // State สำหรับเก็บช่วงวันที่เริ่มต้นและสิ้นสุดที่ต้องการออกรายงาน
   const [startDate, setStartDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  // State สำหรับข้อความ "วันที่จัดทำ" บนหัวรายงาน
   const [reportDate, setReportDate] = useState(formatDateAD(new Date()));
   
+  // State สำหรับเก็บข้อมูลรายงานที่ประมวลผลแล้ว
   const [reportData, setReportData] = useState<any[]>([]);
+  // State สำหรับเก็บยอดรวมสรุปท้ายตาราง
   const [totals, setTotals] = useState({ fuel: 0, allowance: 0, grandTotal: 0 });
+  // State สำหรับอัตราน้ำมันประจำวัน (บาท/ลิตร)
   const [oilRate, setOilRate] = useState('32.94');
 
   const fetchData = async () => {
@@ -43,15 +50,25 @@ export default function ReportsPage() {
 
       const mapped = filteredShipments.map((s: any) => {
         const sWithdrawals = wRes.data.filter((w: any) => 
-          w.shipmentId === s.id && (w.status === 'ApprovedByFinance' || w.status === 'ApprovedByManager')
+          w.shipmentId === s.id && (w.status === 'ApprovedByFinance' || w.status === 'ApprovedByManager' || w.status === 'Pending')
         );
         const sClaims = cRes.data.filter((c: any) => 
-          c.shipmentId === s.id && (c.status === 'ApprovedByFinance' || c.status === 'ApprovedByManager')
+          c.shipmentId === s.id && (c.status === 'ApprovedByFinance' || c.status === 'ApprovedByManager' || c.status === 'Pending')
         );
 
         const fuelTotal = sClaims.reduce((sum: number, c: any) => sum + Number(c.claimAmount), 0);
         const allowanceTotal = sWithdrawals.reduce((sum: number, w: any) => sum + Number(w.amount), 0);
         
+        // หาถานะที่ "ค้าง" ที่สุดเพื่อแสดงผล
+        const getStatusText = (items: any[]) => {
+          if (items.length === 0) return '-';
+          if (items.some(i => i.status === 'Pending')) return 'รอ Manager อนุมัติ';
+          if (items.some(i => i.status === 'ApprovedByManager')) return 'รอ Finance จ่ายเงิน';
+          if (items.every(i => i.status === 'ApprovedByFinance')) return 'จ่ายเงินแล้ว';
+          if (items.some(i => i.status === 'Rejected')) return 'ถูกปฏิเสธ';
+          return 'รอดำเนินการ';
+        };
+
         return {
           id: s.id,
           date: formatDateAD(s.createdAt),
@@ -63,7 +80,9 @@ export default function ReportsPage() {
           fuelLitre: '-', 
           fuelAmount: fuelTotal,
           allowance: allowanceTotal,
-          total: fuelTotal + allowanceTotal
+          total: fuelTotal + allowanceTotal,
+          withdrawalStatus: getStatusText(sWithdrawals),
+          claimStatus: getStatusText(sClaims)
         };
       });
 
@@ -298,7 +317,12 @@ export default function ReportsPage() {
                       <td className="border border-black text-[9px] py-1">{item.driverName}</td>
                       <td className="border border-black text-[9px] py-1 text-left px-2">เบิก/เคลมน้ำมัน</td>
                       <td className="border border-black text-[9px] py-1 text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-                      <td className="border border-black text-[9px] py-1 text-emerald-700 font-bold">อนุมัติจ่ายแล้ว</td>
+                      <td className={`border border-black text-[9px] py-1 font-bold ${
+                        item.withdrawalStatus === 'จ่ายเงินแล้ว' ? 'text-emerald-700' : 
+                        item.withdrawalStatus === 'ถูกปฏิเสธ' ? 'text-red-600' : 'text-amber-600'
+                      }`}>
+                        {item.withdrawalStatus}
+                      </td>
                     </tr>
                   )) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเบิกเงิน</td></tr>}
                 </tbody>
@@ -324,7 +348,12 @@ export default function ReportsPage() {
                       <td className="border border-black text-[9px] py-1">{item.driverName}</td>
                       <td className="border border-black text-[9px] py-1">{item.vehiclePlate}</td>
                       <td className="border border-black text-[9px] py-1 text-right px-2">{item.fuelAmount > 0 ? item.fuelAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-                      <td className="border border-black text-[9px] py-1 text-emerald-700 font-bold">อนุมัติจ่ายแล้ว</td>
+                      <td className={`border border-black text-[9px] py-1 font-bold ${
+                        item.claimStatus === 'จ่ายเงินแล้ว' ? 'text-emerald-700' : 
+                        item.claimStatus === 'ถูกปฏิเสธ' ? 'text-red-600' : 'text-amber-600'
+                      }`}>
+                        {item.claimStatus}
+                      </td>
                     </tr>
                   )) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเคลมน้ำมัน</td></tr>}
                 </tbody>

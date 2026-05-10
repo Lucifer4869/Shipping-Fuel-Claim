@@ -26,20 +26,34 @@ const statusConfig: Record<string, { label: string; cls: string }> = {
   Cancelled: { label: 'ยกเลิก', cls: 'bg-red-500/20 text-red-400 border border-red-500/20' },
 };
 
+// --- หน้าจัดการการเดินรถ (Shipments) ---
+// ส่วนนี้เป็นหัวใจหลักของระบบ ใช้สำหรับสร้างแผนการเดินรถ เลือกต้นทาง-ปลายทางผ่านแผนที่ และติดตามสถานะงาน
 export default function ShipmentsPage() {
   const { user } = useAuth();
+  
+  // State สำหรับเก็บรายการเดินรถทั้งหมด
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  // State สถานะการโหลด
   const [loading, setLoading] = useState(true);
+  
+  // State ควบคุมหน้าต่าง Modal และการแก้ไขข้อมูล
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  
+  // State สำหรับเก็บข้อมูลฟอร์มเบื้องต้น (ทะเบียนรถ, เลขไมล์, ข้อมูลผู้ส่ง/รับ)
   const [form, setForm] = useState({ 
     vehiclePlate: '', startMileage: '',
     senderName: '', senderPhone: '', receiverName: '', receiverPhone: ''
   });
+  
+  // State สำหรับเก็บพิกัดแผนที่ (ละติจูด, ลองจิจูด, ที่อยู่)
   const [origin, setOrigin] = useState<LocationData | null>(null);
   const [destination, setDestination] = useState<LocationData | null>(null);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
+  
+  // State สถานะการส่งข้อมูล
   const [submitting, setSubmitting] = useState(false);
+  // State สำหรับเก็บ ID ของงานที่ต้องการดูรายละเอียดเชิงลึก
   const [detailId, setDetailId] = useState<number | null>(null);
   
   // State for Request Detail Modal

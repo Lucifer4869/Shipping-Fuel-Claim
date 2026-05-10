@@ -10,13 +10,13 @@ public class UploadsController : ControllerBase
 {
     private readonly IWebHostEnvironment _env;
 
-    public UploadsController(IWebHostEnvironment env)
+    public UploadsController(IWebHostEnvironment env) //IWebHostEnvironment เป็นตัวจัดการการอัปโหลดไฟล์
     {
-        _env = env;
+        _env = env;//บันทึกข้อมูลลงฐานข้อมูล
     }
 
     [HttpPost] //เป็นตัวจัดการการอัปโหลดไฟล์
-    public async Task<IActionResult> UploadFile(IFormFile file)
+    public async Task<IActionResult> UploadFile(IFormFile file)//อัปโหลดไฟล์
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "No file uploaded" });

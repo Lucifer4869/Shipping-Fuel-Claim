@@ -6,8 +6,8 @@ using ShippingAPI.Services;
 
 namespace ShippingAPI.Controllers;
 
-[ApiController]
-[Route("api/auth")]
+[ApiController] //ตัวควบคุมสำหรับจัดการการยืนยันตัวตน
+[Route("api/auth")] //เพิ่ม api นี้ด้วยgoogle login โดยใช้ token
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>ล็อกอินเพื่อรับ JWT Token</summary>
-    [HttpPost("login")]
+    [HttpPost("login")] //
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
         var user = await _db.Users
@@ -72,7 +72,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    [HttpGet("me")] //เพิ่ม check ถ้า user ไม่ active ให้ return error จร้าาาา
+    [HttpGet("me")] //เพิ่ม check ถ้า user ไม่ active ให้ return error จร้า
     [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<ActionResult> GetMe()
     {

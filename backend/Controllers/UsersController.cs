@@ -9,7 +9,7 @@ using ShippingAPI.Services;
 
 namespace ShippingAPI.Controllers;
 
-[ApiController]//เอาจัดการผปู้ใช้ roleต่างๆ โดย admingเป็นคนเพิ่มเข้ามา
+[ApiController]//เอาจัดการผปู้ใช้ roleต่างๆ โดย admin เป็นคนเพิ่มเข้ามา
 [Route("api/users")]
 [Authorize(Roles = "Admin")]
 public class UsersController : ControllerBase

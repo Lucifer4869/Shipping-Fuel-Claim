@@ -9,9 +9,9 @@ using ShippingAPI.Services;
 
 namespace ShippingAPI.Controllers;
 
-[ApiController]
+[ApiController]//จัดการการเบิกเงิน โดยหลักการใช้งานเหมือนกันคือต้องแผนการเดินรถก่อนถึงจะเบิกได้
 [Route("api/withdrawals")]
-[Authorize]
+[Authorize]//ต้องการการยืนยันตัวตน
 public class WithdrawalsController : ControllerBase
 {
     private readonly AppDbContext _db;
@@ -23,12 +23,12 @@ public class WithdrawalsController : ControllerBase
         _audit = audit;
     }
 
-    private int GetUserId() => int.Parse(User.FindFirstValue("userId")!);
-    private string GetUserName() => User.FindFirstValue("fullName") ?? "";
-    private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";
+    private int GetUserId() => int.Parse(User.FindFirstValue("userId")!);//ดึงค่า id
+    private string GetUserName() => User.FindFirstValue("fullName") ?? "";//ดึงค่าชื่อ
+    private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role) ?? "";//ดึงค่า role
 
     /// <summary>ดูรายการขอเบิกเงิน</summary>
-    [HttpGet]
+    [HttpGet]//ต้องการการยืนยันตัวตน
     public async Task<ActionResult<IEnumerable<WithdrawalDto>>> GetWithdrawals([FromQuery] int? shipmentId = null)
     {
         var userId = GetUserId();
@@ -46,30 +46,30 @@ public class WithdrawalsController : ControllerBase
         if (role == "Driver")
             query = query.Where(w => w.Shipment.DriverId == userId);
 
-        var list = await query
+        var list = await query //รายการที่ดึงค่า
             .OrderByDescending(w => w.CreatedAt)
             .Select(w => new WithdrawalDto
             {
-                Id = w.Id,
-                ShipmentId = w.ShipmentId,
-                DriverId = w.Shipment.DriverId,
-                TripNumber = w.Shipment.TripNumber,
-                VehiclePlate = w.Shipment.VehiclePlate,
-                DriverName = w.Shipment.Driver.FullName,
-                Amount = w.Amount,
-                Reason = w.Reason,
-                AdditionalItems = w.AdditionalItems,
-                Status = w.Status.ToString(),
-                Origin = w.Shipment.Origin,
-                Destination = w.Shipment.Destination,
-                StartMileage = w.Shipment.StartMileage,
-                ManagerName = w.Manager != null ? w.Manager.FullName : null,
-                ManagerNote = w.ManagerNote,
-                ManagerApprovedAt = w.ManagerApprovedAt,
-                FinanceName = w.Finance != null ? w.Finance.FullName : null,
-                FinanceNote = w.FinanceNote,
-                FinanceApprovedAt = w.FinanceApprovedAt,
-                CreatedAt = w.CreatedAt
+                Id = w.Id, //รหัสการเบิกเงิน
+                ShipmentId = w.ShipmentId, //รหัสการเดินรถ
+                DriverId = w.Shipment.DriverId, //รหัสผู้ขับขี่
+                TripNumber = w.Shipment.TripNumber, //เลขที่เดินรถ
+                VehiclePlate = w.Shipment.VehiclePlate, //ทะเบียนรถ
+                DriverName = w.Shipment.Driver.FullName, //ชื่อผู้ขับขี่
+                Amount = w.Amount, //จำนวนเงิน
+                Reason = w.Reason, //เหตุผล
+                AdditionalItems = w.AdditionalItems, //รายการเพิ่มเติม
+                Status = w.Status.ToString(), //สถานะ
+                Origin = w.Shipment.Origin, //ต้นทาง
+                Destination = w.Shipment.Destination, //ปลายทาง
+                StartMileage = w.Shipment.StartMileage, //ระยะทางเริ่มต้น
+                ManagerName = w.Manager != null ? w.Manager.FullName : null, //ชื่อผู้จัดการ
+                ManagerNote = w.ManagerNote, //หมายเหตุผู้จัดการ
+                ManagerApprovedAt = w.ManagerApprovedAt, //วันที่อนุมัติโดยผู้จัดการ
+                FinanceName = w.Finance != null ? w.Finance.FullName : null, //ชื่อการเงิน
+                FinanceNote = w.FinanceNote, //หมายเหตุการเงิน
+                FinanceApprovedAt = w.FinanceApprovedAt, //วันที่อนุมัติโดยการเงิน
+                CreatedAt = w.CreatedAt //วันที่สร้าง
             })
             .ToListAsync();
 
@@ -77,13 +77,13 @@ public class WithdrawalsController : ControllerBase
     }
 
     /// <summary>ส่งรายการขอเบิกเงิน (Driver เท่านั้น)</summary>
-    [HttpPost]
-    [Authorize(Roles = "Driver,Admin")]
+    [HttpPost]//ต้องการการยืนยันตัวตน
+    [Authorize(Roles = "Driver,Admin")]//ต้องการการยืนยันตัวตน
     public async Task<ActionResult<WithdrawalDto>> CreateWithdrawal([FromBody] CreateWithdrawalRequest request)
     {
-        var userId = GetUserId();
+        var userId = GetUserId();//ดึงค่า id
 
-        var shipment = await _db.Shipments
+        var shipment = await _db.Shipments//ดึงข้อมูลการเดินรถ
             .Include(s => s.Driver)
             .FirstOrDefaultAsync(s => s.Id == request.ShipmentId);
 
@@ -94,11 +94,11 @@ public class WithdrawalsController : ControllerBase
 
         var withdrawal = new Withdrawal
         {
-            ShipmentId = request.ShipmentId,
-            Amount = request.Amount,
-            Reason = request.Reason,
-            AdditionalItems = request.AdditionalItems,
-            CreatedAt = DateTime.UtcNow
+            ShipmentId = request.ShipmentId, //รหัสการเดินรถ
+            Amount = request.Amount, //จำนวนเงิน
+            Reason = request.Reason, //เหตุผล
+            AdditionalItems = request.AdditionalItems, //รายการเพิ่มเติม
+            CreatedAt = DateTime.UtcNow //วันที่สร้าง
         };
 
         _db.Withdrawals.Add(withdrawal);
@@ -108,14 +108,14 @@ public class WithdrawalsController : ControllerBase
 
         return CreatedAtAction(null, new WithdrawalDto
         {
-            Id = withdrawal.Id,
-            ShipmentId = withdrawal.ShipmentId,
-            TripNumber = shipment.TripNumber,
-            DriverName = shipment.Driver.FullName,
-            Amount = withdrawal.Amount,
-            Reason = withdrawal.Reason,
-            Status = withdrawal.Status.ToString(),
-            CreatedAt = withdrawal.CreatedAt
+            Id = withdrawal.Id, //รหัสการเบิกเงิน
+            ShipmentId = withdrawal.ShipmentId,//รหัสการเดินรถ
+            TripNumber = shipment.TripNumber,//เลขที่เดินรถ
+            DriverName = shipment.Driver.FullName,//ชื่อผู้ขับขี่
+            Amount = withdrawal.Amount,//จำนวนเงิน
+            Reason = withdrawal.Reason,//เหตุผล
+            Status = withdrawal.Status.ToString(),//สถานะ
+            CreatedAt = withdrawal.CreatedAt//วันที่สร้าง
         });
     }
 

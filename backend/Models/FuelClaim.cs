@@ -1,28 +1,28 @@
-namespace ShippingAPI.Models;
+namespace ShippingAPI.Models; //ส่วนของการเติมน้ำมัน
 
-public class FuelClaim
+public class FuelClaim //โมเดลสำหรับเก็บประวัติการเติมน้ำมัน
 {
-    public int Id { get; set; }
-    public int ShipmentId { get; set; }
-    public decimal ClaimAmount { get; set; }
-    public string? ReceiptUrl { get; set; }
-    public double MileageOut { get; set; }
-    public double MileageIn { get; set; }
-    public FuelClaimStatus Status { get; set; } = FuelClaimStatus.Pending;
+    public int Id { get; set; }//รหัสการเติมน้ำมัน
+    public int ShipmentId { get; set; }//รหัสการเดินรถ
+    public decimal ClaimAmount { get; set; }//จำนวนเงินที่ขอเบิก
+    public string? ReceiptUrl { get; set; }//รูปภาพใบเสร็จ
+    public double MileageOut { get; set; }//เลขไมล์ตอนออก
+    public double MileageIn { get; set; }//เลขไมล์ตอนเข้า
+    public FuelClaimStatus Status { get; set; } = FuelClaimStatus.Pending;//สถานะการเติมน้ำมัน
     
-    public int? ManagerId { get; set; }
-    public string? ManagerNote { get; set; }
-    public DateTime? ManagerApprovedAt { get; set; }
+    public int? ManagerId { get; set; }//รหัสผู้จัดการ
+    public string? ManagerNote { get; set; }//หมายเหตุผู้จัดการ
+    public DateTime? ManagerApprovedAt { get; set; }//วันที่อนุมัติโดยผู้จัดการ
     
-    public int? FinanceId { get; set; }
-    public string? FinanceNote { get; set; }
-    public DateTime? FinanceApprovedAt { get; set; }
+    public int? FinanceId { get; set; }//รหัสการเงิน
+    public string? FinanceNote { get; set; }//หมายเหตุการเงิน
+    public DateTime? FinanceApprovedAt { get; set; }//วันที่อนุมัติโดยการเงิน
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime? UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;//วันที่สร้าง
+    public DateTime? UpdatedAt { get; set; }//วันที่อัปเดต
 
     // Navigation
-    public Shipment Shipment { get; set; } = null!;
-    public User? Manager { get; set; }
-    public User? Finance { get; set; }
+    public Shipment Shipment { get; set; } = null!;//การเดินรถ
+    public User? Manager { get; set; }//ผู้จัดการ
+    public User? Finance { get; set; }//การเงิน
 }

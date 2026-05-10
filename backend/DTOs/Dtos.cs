@@ -1,129 +1,129 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ShippingAPI.DTOs;
+namespace ShippingAPI.DTOs; 
 
 // Auth
-public class LoginRequest
+public class LoginRequest //รหัสในการเข้าสู่ระบบ
 {
-    [Required] public string Username { get; set; } = string.Empty;
-    [Required] public string Password { get; set; } = string.Empty;
+    [Required] public string Username { get; set; } = string.Empty; //ชื่อผู้ใช้
+    [Required] public string Password { get; set; } = string.Empty; //รหัสผ่าน
 }
 
-public class GoogleLoginRequest
+public class GoogleLoginRequest //การเข้าสู่ระบบผ่าน Google
 {
-    [Required] public string IdToken { get; set; } = string.Empty;
+    [Required] public string IdToken { get; set; } = string.Empty; //รหัสการเข้าสู่ระบบผ่าน Google
 }
 
-public class LoginResponse
+public class LoginResponse //แสดงข้อมูลหลังจากเข้าสู่ระบบสำเร็จ
 {
-    public string Token { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
-    public string VehiclePlate { get; set; } = string.Empty;
-    public int UserId { get; set; }
+    public string Token { get; set; } = string.Empty; //รหัสในการเข้าสู่ระบบ
+    public string FullName { get; set; } = string.Empty; //ชื่อผู้ใช้
+    public string Role { get; set; } = string.Empty; //บทบาท
+    public string VehiclePlate { get; set; } = string.Empty; //ทะเบียนรถ
+    public int UserId { get; set; }//รหัสผู้ใช้
 }
 
 // Shipment
-public class CreateShipmentRequest
+public class CreateShipmentRequest //สร้างรายการเดินรถ
 {
-    [Required] public string VehiclePlate { get; set; } = string.Empty;
-    [Required] public string Origin { get; set; } = string.Empty;
-    public double? OriginLat { get; set; }
-    public double? OriginLng { get; set; }
-    [Required] public string Destination { get; set; } = string.Empty;
-    public double? DestinationLat { get; set; }
-    public double? DestinationLng { get; set; }
-    public double? RouteDistanceKm { get; set; }
-    public string SenderName { get; set; } = string.Empty;
-    public string SenderPhone { get; set; } = string.Empty;
-    public string ReceiverName { get; set; } = string.Empty;
-    public string ReceiverPhone { get; set; } = string.Empty;
-    [Required] public double StartMileage { get; set; }
+    [Required] public string VehiclePlate { get; set; } = string.Empty;//ทะเบียนรถ
+    [Required] public string Origin { get; set; } = string.Empty;//ต้นทาง
+    public double? OriginLat { get; set; }//ละติจูดต้นทาง
+    public double? OriginLng { get; set; }//ลองจิจูดต้นทาง
+    [Required] public string Destination { get; set; } = string.Empty;//ปลายทาง
+    public double? DestinationLat { get; set; }//ละติจูดปลายทาง
+    public double? DestinationLng { get; set; }//ลองจิจูดปลายทาง
+    public double? RouteDistanceKm { get; set; }//ระยะทาง
+    public string SenderName { get; set; } = string.Empty;//ชื่อผู้ส่ง
+    public string SenderPhone { get; set; } = string.Empty;//เบอร์โทรผู้ส่ง
+    public string ReceiverName { get; set; } = string.Empty;//ชื่อผู้รับ
+    public string ReceiverPhone { get; set; } = string.Empty;//เบอร์โทรผู้รับ
+    [Required] public double StartMileage { get; set; }//เลขไมล์เริ่มต้น
 }
 
-public class UpdateShipmentRequest
+public class UpdateShipmentRequest //อัพเดทข้อมูลการเดินรถ
 {
-    public string VehiclePlate { get; set; } = string.Empty;
-    public string Origin { get; set; } = string.Empty;
-    public double? OriginLat { get; set; }
-    public double? OriginLng { get; set; }
-    public string Destination { get; set; } = string.Empty;
-    public double? DestinationLat { get; set; }
-    public double? DestinationLng { get; set; }
-    public double? RouteDistanceKm { get; set; }
-    public string SenderName { get; set; } = string.Empty;
-    public string SenderPhone { get; set; } = string.Empty;
-    public string ReceiverName { get; set; } = string.Empty;
-    public string ReceiverPhone { get; set; } = string.Empty;
-    public double? StartMileage { get; set; }
+    public string VehiclePlate { get; set; } = string.Empty;//ทะเบียนรถ
+    public string Origin { get; set; } = string.Empty;//ต้นทาง
+    public double? OriginLat { get; set; }//ละติจูดต้นทาง
+    public double? OriginLng { get; set; }//ลองจิจูดต้นทาง
+    public string Destination { get; set; } = string.Empty;//ปลายทาง
+    public double? DestinationLat { get; set; }//ละติจูดปลายทาง
+    public double? DestinationLng { get; set; }//ลองจิจูดปลายทาง
+    public double? RouteDistanceKm { get; set; }//ระยะทาง
+    public string SenderName { get; set; } = string.Empty;//ชื่อผู้ส่ง
+    public string SenderPhone { get; set; } = string.Empty;//เบอร์โทรผู้ส่ง
+    public string ReceiverName { get; set; } = string.Empty;//ชื่อผู้รับ
+    public string ReceiverPhone { get; set; } = string.Empty;//เบอร์โทรผู้รับ
+    public double? StartMileage { get; set; }//เลขไมล์เริ่มต้น
 }
 
-public class ShipmentDto
+public class ShipmentDto //แสดงข้อมูลการเดินรถ
 {
-    public int Id { get; set; }
-    public string TripNumber { get; set; } = string.Empty;
-    public string VehiclePlate { get; set; } = string.Empty;
-    public int DriverId { get; set; }
-    public string DriverName { get; set; } = string.Empty;
-    public string Origin { get; set; } = string.Empty;
-    public double? OriginLat { get; set; }
-    public double? OriginLng { get; set; }
-    public string Destination { get; set; } = string.Empty;
-    public double? DestinationLat { get; set; }
-    public double? DestinationLng { get; set; }
-    public double? RouteDistanceKm { get; set; }
-    public string SenderName { get; set; } = string.Empty;
-    public string SenderPhone { get; set; } = string.Empty;
-    public string ReceiverName { get; set; } = string.Empty;
-    public string ReceiverPhone { get; set; } = string.Empty;
-    public double StartMileage { get; set; }
-    public double? EndMileage { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public int WithdrawalCount { get; set; }
-    public int FuelClaimCount { get; set; }
+    public int Id { get; set; }//รหัสการเดินรถ
+    public string TripNumber { get; set; } = string.Empty;//เลขที่เดินรถ
+    public string VehiclePlate { get; set; } = string.Empty;//ทะเบียนรถ
+    public int DriverId { get; set; }//รหัสผู้ขับขี่
+    public string DriverName { get; set; } = string.Empty;//ชื่อผู้ขับขี่
+    public string Origin { get; set; } = string.Empty;//ต้นทาง
+    public double? OriginLat { get; set; }//ละติจูดต้นทาง
+    public double? OriginLng { get; set; }//ลองจิจูดต้นทาง
+    public string Destination { get; set; } = string.Empty;//ปลายทาง
+    public double? DestinationLat { get; set; }//ละติจูดปลายทาง
+    public double? DestinationLng { get; set; }//ลองจิจูดปลายทาง
+    public double? RouteDistanceKm { get; set; }//ระยะทาง
+    public string SenderName { get; set; } = string.Empty;//ผู้ส่ง
+    public string SenderPhone { get; set; } = string.Empty;//เบอร์โทรผู้ส่ง
+    public string ReceiverName { get; set; } = string.Empty;//ผู้รับ
+    public string ReceiverPhone { get; set; } = string.Empty;//เบอร์โทรผู้รับ
+    public double StartMileage { get; set; }//เลขไมล์เริ่มต้น
+    public double? EndMileage { get; set; }//เลขไมล์สุดท้าย
+    public string Status { get; set; } = string.Empty;//สถานะ
+    public DateTime CreatedAt { get; set; }//เวลาที่สร้าง
+    public int WithdrawalCount { get; set; }//จำนวนครั้งที่เบิก
+    public int FuelClaimCount { get; set; }//จำนวนครั้งที่เติม
 }
 
 // Withdrawal
-public class CreateWithdrawalRequest
+public class CreateWithdrawalRequest//สร้างรายการเบิกเงิน
 {
-    [Required] public int ShipmentId { get; set; }
-    [Required][Range(1, double.MaxValue)] public decimal Amount { get; set; }
-    [Required] public string Reason { get; set; } = string.Empty;
-    public string? AdditionalItems { get; set; }
+    [Required] public int ShipmentId { get; set; }//รหัสการเดินรถ
+    [Required][Range(1, double.MaxValue)] public decimal Amount { get; set; }//จำนวนเงิน
+    [Required] public string Reason { get; set; } = string.Empty;//เหตุผล
+    public string? AdditionalItems { get; set; }//รายการเพิ่มเติม
 }
 
-public class ApproveWithdrawalRequest
+public class ApproveWithdrawalRequest//อนุมัติการเบิกเงิน
 {
-    [Required] public bool IsApproved { get; set; }
-    public string? Note { get; set; }
+    [Required] public bool IsApproved { get; set; }//อนุมัติ
+    public string? Note { get; set; }//หมายเหตุ
 }
 
-public class WithdrawalDto
+public class WithdrawalDto//แสดงรายการเบิกเงิน
 {
-    public int Id { get; set; }
-    public int ShipmentId { get; set; }
-    public int DriverId { get; set; }
-    public string TripNumber { get; set; } = string.Empty;
-    public string VehiclePlate { get; set; } = string.Empty; // เพิ่มทะเบียนรถ
-    public string DriverName { get; set; } = string.Empty;
-    public decimal Amount { get; set; }
-    public string Reason { get; set; } = string.Empty;
-    public string? AdditionalItems { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public int Id { get; set; }//รหัสการเบิกเงิน
+    public int ShipmentId { get; set; }//รหัสการเดินรถ
+    public int DriverId { get; set; }//รหัสผู้ขับขี่
+    public string TripNumber { get; set; } = string.Empty;//เลขที่เดินรถ
+    public string VehiclePlate { get; set; } = string.Empty;//ทะเบียนรถ
+    public string DriverName { get; set; } = string.Empty;//ชื่อผู้ขับขี่
+    public decimal Amount { get; set; }//จำนวนเงิน
+    public string Reason { get; set; } = string.Empty;//เหตุผล
+    public string? AdditionalItems { get; set; }//รายการเพิ่มเติม
+    public string Status { get; set; } = string.Empty;//สถานะ
     
     // ข้อมูลงานเดินรถที่เกี่ยวข้อง
-    public string Origin { get; set; } = string.Empty;
-    public string Destination { get; set; } = string.Empty;
-    public double StartMileage { get; set; }
+    public string Origin { get; set; } = string.Empty;//ต้นทาง
+    public string Destination { get; set; } = string.Empty;//ปลายทาง
+    public double StartMileage { get; set; }//เลขไมล์เริ่มต้น
 
-    public string? ManagerName { get; set; }
-    public string? ManagerNote { get; set; }
-    public DateTime? ManagerApprovedAt { get; set; }
-    public string? FinanceName { get; set; }
-    public string? FinanceNote { get; set; }
-    public DateTime? FinanceApprovedAt { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public string? ManagerName { get; set; }//ชื่อผู้จัดการ
+    public string? ManagerNote { get; set; }//หมายเหตุผู้จัดการ
+    public DateTime? ManagerApprovedAt { get; set; }//วันที่อนุมัติโดยผู้จัดการ
+    public string? FinanceName { get; set; }//ชื่อการเงิน
+    public string? FinanceNote { get; set; }//หมายเหตุการเงิน
+    public DateTime? FinanceApprovedAt { get; set; }//วันที่อนุมัติโดยการเงิน
+    public DateTime CreatedAt { get; set; }//เวลาที่สร้าง
 }
 
 // FuelClaim

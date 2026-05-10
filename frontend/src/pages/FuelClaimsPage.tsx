@@ -23,19 +23,32 @@ const statusConfig: Record<string, { label: string; cls: string; icon: any }> = 
   Rejected: { label: 'ปฏิเสธ', cls: 'bg-red-500/20 text-red-400 border-red-500/20', icon: XCircle },
 };
 
+// --- หน้าจัดการการเคลมน้ำมัน (Fuel Claims) ---
+// ส่วนนี้ใช้สำหรับส่งคำขอเคลมค่าน้ำมันหลังจบทริป (คนขับ) และอนุมัติการจ่ายเงิน (Manager/Finance)
 export default function FuelClaimsPage() {
   const { user } = useAuth();
+  
+  // State สำหรับเก็บรายการเคลมน้ำมันทั้งหมด
   const [claims, setClaims] = useState<FuelClaim[]>([]);
+  // State สำหรับเก็บรายการเดินรถ (เพื่อเลือกผูกกับรายการเคลม)
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  // State สถานะการโหลด
   const [loading, setLoading] = useState(true);
+  
+  // State ควบคุมหน้าต่างป๊อปอัพ (เพิ่ม/อนุมัติ/ดูรายละเอียด)
   const [showModal, setShowModal] = useState(false);
   const [approveModal, setApproveModal] = useState<{ id: number; type: 'manager' | 'finance' } | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<FuelClaim | null>(null);
+  
+  // State สำหรับค้นหาและกรองข้อมูล
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   
+  // State สำหรับเก็บข้อมูลในฟอร์มเคลมน้ำมัน (รวมถึงเลขไมล์และรูปใบเสร็จ)
   const [form, setForm] = useState({ shipmentId: '', claimAmount: '', mileageOut: '', mileageIn: '', receiptUrl: '' });
+  // State สำหรับหมายเหตุการอนุมัติ
   const [note, setNote] = useState('');
+  // State สถานะการส่งข้อมูลและอัปโหลดรูป
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
 

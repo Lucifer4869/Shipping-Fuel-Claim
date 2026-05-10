@@ -2,14 +2,20 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getUsers, createUser, updateUser, deleteUser } from '../lib/api';
 import toast from 'react-hot-toast';
-import { Users as UsersIcon, Plus, UserCircle, Edit2, ShieldAlert, Trash2 } from 'lucide-react';
+import { Users as UsersIcon, Plus, UserCircle, Edit2, ShieldAlert, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+// --- หน้าจัดการผู้ใช้งาน (User Management) ---
+// ส่วนนี้ใช้สำหรับให้ Admin จัดการบัญชีผู้ใช้ในระบบทั้งหมด (เพิ่ม/ลบ/แก้ไข/ระงับการใช้งาน)
 export default function UsersPage() {
   const { user, refreshUser } = useAuth();
   const queryClient = useQueryClient();
+  
+  // State สำหรับควบคุมการเปิด/ปิดหน้าต่าง Modal (หน้าต่างป๊อปอัพ)
   const [showModal, setShowModal] = useState(false);
+  // State สำหรับเก็บข้อมูลผู้ใช้ที่เรากำลังเลือกแก้ไข (ถ้าเป็น null แปลว่ากำลังจะเพิ่มใหม่)
   const [editingUser, setEditingUser] = useState<any>(null);
+  // State สำหรับเก็บข้อมูลในฟอร์ม (Username, Password, ชื่อ-สกุล, ฯลฯ)
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -18,6 +24,9 @@ export default function UsersPage() {
     vehiclePlate: '',
     isActive: true
   });
+  
+  // State สำหรับเปิด/ปิดการมองเห็นรหัสผ่านใน Modal
+  const [showPassword, setShowPassword] = useState(false);
 
   const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
@@ -109,6 +118,7 @@ export default function UsersPage() {
       isActive: u.isActive
     });
     setShowModal(true);
+    setShowPassword(false);
   };
 
   const resetForm = () => {
@@ -121,6 +131,7 @@ export default function UsersPage() {
       vehiclePlate: '',
       isActive: true
     });
+    setShowPassword(false);
   };
 
   if (user?.role !== 'Admin') {
@@ -260,14 +271,23 @@ export default function UsersPage() {
 
               <div>
                 <label className="label">รหัสผ่าน {editingUser && '(เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยน)'}</label>
-                <input
-                  type="password"
-                  required={!editingUser}
-                  value={formData.password}
-                  onChange={e => setFormData({ ...formData, password: e.target.value })}
-                  className="input-field"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required={!editingUser}
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    className="input-field pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div>

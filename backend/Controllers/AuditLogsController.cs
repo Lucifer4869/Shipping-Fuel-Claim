@@ -6,9 +6,9 @@ using ShippingAPI.DTOs;
 
 namespace ShippingAPI.Controllers;
 
-[ApiController]
+[ApiController]//เป็นระบบ เอาไว้ดูประวัติเพื่อดูการทำงานข้อง แต่ละ role
 [Route("api/audit-logs")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin")] //ใช้ได้เฉพาะ admin
 public class AuditLogsController : ControllerBase
 {
     private readonly AppDbContext _db;

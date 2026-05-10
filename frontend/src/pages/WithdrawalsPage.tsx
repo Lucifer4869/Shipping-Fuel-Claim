@@ -22,18 +22,32 @@ const statusConfig: Record<string, { label: string; cls: string; icon: any }> = 
   Rejected: { label: 'ปฏิเสธ', cls: 'bg-red-500/20 text-red-400 border-red-500/20', icon: XCircle },
 };
 
+// --- หน้าจัดการการขอเบิกเงิน (Withdrawals) ---
+// ส่วนนี้ใช้สำหรับส่งคำขอเบิกเงินล่วงหน้า (คนขับ) และอนุมัติการเบิกเงิน (Manager/Finance)
 export default function WithdrawalsPage() {
   const { user } = useAuth();
+  
+  // State สำหรับเก็บรายการเบิกเงินทั้งหมด
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  // State สำหรับเก็บรายการเดินรถ (เพื่อเอามาใส่ใน dropdown ตอนขอเบิก)
   const [shipments, setShipments] = useState<Shipment[]>([]);
+  // State สถานะการโหลดข้อมูล
   const [loading, setLoading] = useState(true);
+  
+  // State ควบคุมการแสดงหน้าต่างต่างๆ (เพิ่ม/อนุมัติ/รายละเอียด)
   const [showModal, setShowModal] = useState(false);
   const [approveModal, setApproveModal] = useState<{ id: number; type: 'manager' | 'finance' } | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<Withdrawal | null>(null);
+  
+  // State สำหรับการกรองข้อมูล (ค้นหาชื่อ/เลขที่เดินรถ และสถานะ)
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  
+  // State สำหรับเก็บข้อมูลในฟอร์มขอเบิกเงิน
   const [form, setForm] = useState({ shipmentId: '', amount: '', reason: '', additionalItems: '' });
+  // State สำหรับบันทึกหมายเหตุตอนอนุมัติ
   const [note, setNote] = useState('');
+  // State สถานะกำลังส่งข้อมูล (ป้องกันการกดเบิ้ล)
   const [submitting, setSubmitting] = useState(false);
 
   const fetchData = async () => {

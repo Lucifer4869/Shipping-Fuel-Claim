@@ -50,26 +50,26 @@ public class FuelClaimsController : ControllerBase
             .OrderByDescending(f => f.CreatedAt)
             .Select(f => new FuelClaimDto
             {
-                Id = f.Id,
-                ShipmentId = f.ShipmentId,
-                DriverId = f.Shipment.DriverId,
-                TripNumber = f.Shipment.TripNumber,
-                VehiclePlate = f.Shipment.VehiclePlate,
-                DriverName = f.Shipment.Driver.FullName,
-                ClaimAmount = f.ClaimAmount,
-                ReceiptUrl = f.ReceiptUrl,
-                MileageOut = f.MileageOut,
-                MileageIn = f.MileageIn,
-                Status = f.Status.ToString(),
-                Origin = f.Shipment.Origin,
-                Destination = f.Shipment.Destination,
-                ManagerName = f.Manager != null ? f.Manager.FullName : null,
-                ManagerNote = f.ManagerNote,
-                ManagerApprovedAt = f.ManagerApprovedAt,
-                FinanceName = f.Finance != null ? f.Finance.FullName : null,
-                FinanceNote = f.FinanceNote,
-                FinanceApprovedAt = f.FinanceApprovedAt,
-                CreatedAt = f.CreatedAt
+                Id = f.Id, // id ของรายการเคลมน้ำมัน
+                ShipmentId = f.ShipmentId, //เลขที่ใบงาน
+                DriverId = f.Shipment.DriverId,// id ของพนักงานขับรถ
+                TripNumber = f.Shipment.TripNumber,//เลขที่ใบงาน
+                VehiclePlate = f.Shipment.VehiclePlate,//ทะเบียนรถ
+                DriverName = f.Shipment.Driver.FullName,// ชื่อพนักงานขับรถ
+                ClaimAmount = f.ClaimAmount,// จำนวนเงินที่เคลม
+                ReceiptUrl = f.ReceiptUrl,// รูปใบเสร็จ
+                MileageOut = f.MileageOut,// เลขไมล์ขาไป
+                MileageIn = f.MileageIn,// เลขไมล์ขากลับ
+                Status = f.Status.ToString(),// สถานะการเคลมน้ำมัน
+                Origin = f.Shipment.Origin,// สถานที่เริ่มต้น
+                Destination = f.Shipment.Destination,// สถานที่ปลายทาง
+                ManagerName = f.Manager != null ? f.Manager.FullName : null,// ชื่อผู้จัดการ
+                ManagerNote = f.ManagerNote,// หมายเหตุจากผู้จัดการ
+                ManagerApprovedAt = f.ManagerApprovedAt,// วันเวลาที่ผู้จัดการอนุมัติ
+                FinanceName = f.Finance != null ? f.Finance.FullName : null,// ชื่อผู้จัดการ
+                FinanceNote = f.FinanceNote,// หมายเหตุจากผู้จัดการ
+                FinanceApprovedAt = f.FinanceApprovedAt,// วันเวลาที่ผู้จัดการอนุมัติ
+                CreatedAt = f.CreatedAt// วันเวลาที่สร้าง
             })
             .ToListAsync();
 
@@ -94,12 +94,12 @@ public class FuelClaimsController : ControllerBase
 
         var claim = new FuelClaim
         {
-            ShipmentId = request.ShipmentId,
-            ClaimAmount = request.ClaimAmount,
-            ReceiptUrl = request.ReceiptUrl,
-            MileageOut = request.MileageOut,
-            MileageIn = request.MileageIn,
-            CreatedAt = DateTime.UtcNow
+            ShipmentId = request.ShipmentId,//เลขที่ใบงาน
+            ClaimAmount = request.ClaimAmount,//จำนวนเงินที่เคลม
+            ReceiptUrl = request.ReceiptUrl,//รูปใบเสร็จ
+            MileageOut = request.MileageOut,//เลขไมล์ขาไป
+            MileageIn = request.MileageIn,//เลขไมล์ขากลับ
+            CreatedAt = DateTime.UtcNow//วันที่สร้าง
         };
 
         _db.FuelClaims.Add(claim);
@@ -109,15 +109,15 @@ public class FuelClaimsController : ControllerBase
 
         return CreatedAtAction(null, new FuelClaimDto
         {
-            Id = claim.Id,
-            ShipmentId = claim.ShipmentId,
-            TripNumber = shipment.TripNumber,
-            DriverName = shipment.Driver.FullName,
-            ClaimAmount = claim.ClaimAmount,
-            MileageOut = claim.MileageOut,
-            MileageIn = claim.MileageIn,
-            Status = claim.Status.ToString(),
-            CreatedAt = claim.CreatedAt
+            Id = claim.Id,// id ของรายการเคลมน้ำมัน
+            ShipmentId = claim.ShipmentId,//เลขที่ใบงาน
+            TripNumber = shipment.TripNumber,//เลขที่ใบงาน
+            DriverName = shipment.Driver.FullName,// ชื่อพนักงานขับรถ
+            ClaimAmount = claim.ClaimAmount,//จำนวนเงินที่เคลม
+            MileageOut = claim.MileageOut,//เลขไมล์ขาไป
+            MileageIn = claim.MileageIn,//เลขไมล์ขากลับ   
+            Status = claim.Status.ToString(),//สถานะการเคลมน้ำมัน
+            CreatedAt = claim.CreatedAt//วันที่สร้าง
         });
     }
 
@@ -132,12 +132,12 @@ public class FuelClaimsController : ControllerBase
         if (claim == null) return NotFound();
         // Removed check: if (claim.Status != FuelClaimStatus.Pending) return BadRequest(...)
 
-        var oldStatus = claim.Status;
-        claim.Status = request.IsApproved ? FuelClaimStatus.ApprovedByManager : FuelClaimStatus.Rejected;
-        claim.ManagerId = userId;
-        claim.ManagerNote = request.Note;
-        claim.ManagerApprovedAt = DateTime.UtcNow;
-        claim.UpdatedAt = DateTime.UtcNow;
+        var oldStatus = claim.Status;//สถานะเดิม
+        claim.Status = request.IsApproved ? FuelClaimStatus.ApprovedByManager : FuelClaimStatus.Rejected;//เปลี่ยนสถานะ
+        claim.ManagerId = userId;//id ของ manager
+        claim.ManagerNote = request.Note;//หมายเหตุจาก manager
+        claim.ManagerApprovedAt = DateTime.UtcNow;//วันเวลาที่ manager อนุมัติ
+        claim.UpdatedAt = DateTime.UtcNow;//วันเวลาที่แก้ไข
 
         await _db.SaveChangesAsync();
         await _audit.LogAsync("FuelClaims", id, "UPDATE",
@@ -159,34 +159,34 @@ public class FuelClaimsController : ControllerBase
         if (claim == null) return NotFound();
         // Removed check for changing status easily
 
-        var oldStatus = claim.Status;
-        claim.Status = request.IsApproved ? FuelClaimStatus.ApprovedByFinance : FuelClaimStatus.Rejected;
-        claim.FinanceId = userId;
-        claim.FinanceNote = request.Note;
-        claim.FinanceApprovedAt = DateTime.UtcNow;
-        claim.UpdatedAt = DateTime.UtcNow;
+        var oldStatus = claim.Status;//สถานะเดิม
+        claim.Status = request.IsApproved ? FuelClaimStatus.ApprovedByFinance : FuelClaimStatus.Rejected;//เปลี่ยนสถานะ
+        claim.FinanceId = userId;//id ของ finance
+        claim.FinanceNote = request.Note;//หมายเหตุจาก finance
+        claim.FinanceApprovedAt = DateTime.UtcNow;//วันเวลาที่ finance อนุมัติ
+        claim.UpdatedAt = DateTime.UtcNow;//วันเวลาที่แก้ไข
 
         await _db.SaveChangesAsync();
         await _audit.LogAsync("FuelClaims", id, "UPDATE",
-            new { Status = oldStatus.ToString() },
-            new { Status = claim.Status.ToString(), Note = request.Note },
-            userId, GetUserName(), GetUserRole());
+            new { Status = oldStatus.ToString() },//สถานะเดิม
+            new { Status = claim.Status.ToString(), Note = request.Note },//สถานะใหม่พร้อมหมายเหตุ
+            userId, GetUserName(), GetUserRole());//ผู้ใช้และบทบาท
 
         return Ok(new { message = request.IsApproved ? "อนุมัติโดย Finance เรียบร้อย" : "ปฏิเสธเรียบร้อย" });
     }
 
     /// <summary>ลบรายการเคลมน้ำมัน (Admin เท่านั้น)</summary>
-    [HttpDelete("{id}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteClaim(int id)
+    [HttpDelete("{id}")]//ลบรายการเคลมน้ำมัน
+    [Authorize(Roles = "Admin")]//ใช้ได้เฉพาะ admin
+    public async Task<IActionResult> DeleteClaim(int id)//ลบรายการเคลมน้ำมัน
     {
-        var userId = GetUserId();
-        var claim = await _db.FuelClaims.FindAsync(id);
-        if (claim == null) return NotFound();
+        var userId = GetUserId();//id ของผู้ใช้
+        var claim = await _db.FuelClaims.FindAsync(id);//id ของรายการเคลมน้ำมัน
+        if (claim == null) return NotFound();//ไม่พบข้อมูล
 
-        _db.FuelClaims.Remove(claim);
-        await _db.SaveChangesAsync();
-        await _audit.LogAsync("FuelClaims", id, "DELETE", 
+        _db.FuelClaims.Remove(claim);//ลบรายการเคลมน้ำมัน
+        await _db.SaveChangesAsync();//บันทึก
+        await _audit.LogAsync("FuelClaims", id, "DELETE", //บันทึกการลบ
             new { claim.Id, claim.ShipmentId, claim.ClaimAmount, Status = claim.Status.ToString() }, 
             null, userId, GetUserName(), GetUserRole());
 

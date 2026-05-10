@@ -15,21 +15,29 @@ interface Stats {
   rejectedCount: number;
 }
 
+// --- หน้า Dashboard หลักของระบบ ---
+// ทำหน้าที่แสดงผลสรุปภาพรวม โดยจะเปลี่ยนหน้าตาไปตามบทบาท (Role) ของผู้ใช้งาน
 export default function DashboardPage() {
   const { user } = useAuth();
 
-  // Role-based routing for non-admins
+  // --- ส่วนการเปลี่ยนหน้า Dashboard ตามบทบาท (Role-based Dashboard) ---
+  // ถ้าเป็นพนักงานขับรถ (Driver) ให้ไปที่หน้าจอสำหรับคนขับ
   if (user?.role === 'Driver') return <DriverDashboard />;
+  
+  // ถ้าเป็นผู้จัดการ (Manager) ให้ไปที่หน้าจอสำหรับการอนุมัติ
   if (user?.role === 'Manager') return <ManagerDashboard />;
+  
+  // ถ้าเป็นการเงิน (Finance) ให้ไปที่หน้าจอสำหรับการจ่ายเงิน
   if (user?.role === 'Finance') return <FinanceDashboard />;
 
-  // Admin sees the unified "Super Dashboard"
+  // --- ส่วนของผู้ดูแลระบบ (Admin) ---
+  // แอดมินจะเห็นหน้าจอแบบ "Super Dashboard" ที่รวมทุกส่วนเข้าด้วยกัน
   return (
     <div className="space-y-10 animate-fadeIn">
-      {/* 1. Header & Stats */}
+      {/* 1. ส่วนสรุปตัวเลขสถิติ (Overview & Stats) */}
       <AdminOverview user={user} />
 
-      {/* 2. Management & Financial Section (Manager/Finance View) */}
+      {/* 2. ส่วนการจัดการและอนุมัติเงิน (สำหรับมุมมอง Manager และ Finance) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
           <div className="flex items-center gap-2 mb-2">
@@ -47,7 +55,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 3. Operational Section (Driver View) */}
+      {/* 3. ส่วนการปฏิบัติงานของคนขับ (Driver View - สำหรับให้แอดมินดูภาพรวม) */}
       <div className="space-y-6">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
