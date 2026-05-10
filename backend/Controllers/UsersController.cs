@@ -37,6 +37,7 @@ public class UsersController : ControllerBase
             {
                 Id = u.Id,
                 Username = u.Username,
+                Email = u.Email,
                 FullName = u.FullName,
                 Role = u.Role.ToString(),
                 VehiclePlate = u.VehiclePlate,
@@ -61,6 +62,7 @@ public class UsersController : ControllerBase
         var user = new User
         {
             Username = request.Username,
+            Email = request.Email ?? "",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             FullName = request.FullName,
             Role = roleEnum,
@@ -79,6 +81,7 @@ public class UsersController : ControllerBase
         {
             Id = user.Id,
             Username = user.Username,
+            Email = user.Email,
             FullName = user.FullName,
             Role = user.Role.ToString(),
             VehiclePlate = user.VehiclePlate,
@@ -97,6 +100,7 @@ public class UsersController : ControllerBase
         var oldValues = new { user.FullName, Role = user.Role.ToString(), user.VehiclePlate, user.IsActive };
 
         if (!string.IsNullOrEmpty(request.FullName)) user.FullName = request.FullName;
+        if (request.Email != null) user.Email = request.Email;
         if (!string.IsNullOrEmpty(request.Password)) user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
         if (request.VehiclePlate != null) user.VehiclePlate = request.VehiclePlate;
         if (request.IsActive.HasValue) user.IsActive = request.IsActive.Value;

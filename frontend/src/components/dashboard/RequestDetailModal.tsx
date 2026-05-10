@@ -1,4 +1,3 @@
-import React from 'react';
 import { X, CheckCircle, XCircle, Clock, Banknote, Fuel, Navigation, MapPin, Truck, Image as ImageIcon } from 'lucide-react';
 
 interface RequestDetailModalProps {

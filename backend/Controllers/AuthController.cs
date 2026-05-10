@@ -47,7 +47,8 @@ public class AuthController : ControllerBase
         {
             var payload = await Google.Apis.Auth.GoogleJsonWebSignature.ValidateAsync(request.IdToken);
 
-            var user = await _db.Users.FirstOrDefaultAsync(u => u.Username == payload.Email);
+            // ตรวจสอบว่ามีผู้ใช้ในระบบที่มี Email หรือ Username ตรงกับ Google Email หรือไม่
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == payload.Email || u.Username == payload.Email);
             if (user == null)
             {
                 return Unauthorized(new { message = "อีเมลนี้ไม่มีในระบบ ไม่ได้รับอนุญาตให้เข้าใช้งาน" });

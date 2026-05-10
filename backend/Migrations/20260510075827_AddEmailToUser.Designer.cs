@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShippingAPI.Data;
@@ -11,9 +12,11 @@ using ShippingAPI.Data;
 namespace ShippingAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260510075827_AddEmailToUser")]
+    partial class AddEmailToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -273,7 +276,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "System Admin",
                             IsActive = true,
-                            PasswordHash = "$2a$11$tejJGxZjM/g/GlaGeZYzvuR1nuDhIVUkvDqB0QQ/772w.wNKEe30y",
+                            PasswordHash = "$2a$11$SN60KAx0dUuL1wxsyTljS.IjRHhXDByb0cPLzoRIC47XYvu691Yje",
                             Role = 3,
                             Username = "admin",
                             VehiclePlate = ""
@@ -285,7 +288,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "สมชาย ใจดี",
                             IsActive = true,
-                            PasswordHash = "$2a$11$yXXbMLCHTYeWTAZN00FVJu9b0Kud0n5gcBhhmxGbTmsHvFYsvos.q",
+                            PasswordHash = "$2a$11$La0Tjlw42KeKvDGYl1umA.gsxbqtLpizxaeDkCAU4xUshG5EuzxXS",
                             Role = 0,
                             Username = "driver01",
                             VehiclePlate = ""
@@ -297,7 +300,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "นายวิชัย รักงาน",
                             IsActive = true,
-                            PasswordHash = "$2a$11$WaCMf4NO6bvaf7uflGolSe80J0Pafjol2LfqKei7ZF7zEksUqL1Pm",
+                            PasswordHash = "$2a$11$CH786wZVocM.egjNuPy2WuqM0LAFAzF7CmleHHP41AGMJQtjm214i",
                             Role = 1,
                             Username = "manager01",
                             VehiclePlate = ""
@@ -309,7 +312,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "นางสาวมาลี บัญชีดี",
                             IsActive = true,
-                            PasswordHash = "$2a$11$LkvQn15p2i0PLUk.x9llzOM/kJTcqH1bkaE8GlVXGtOKp1I5aS56m",
+                            PasswordHash = "$2a$11$XEEm5Ao129.uoS5lJeVPI.0YbKAh7irvREPHhsRLpbNfb60m7P/ry",
                             Role = 2,
                             Username = "finance01",
                             VehiclePlate = ""
@@ -381,7 +384,7 @@ namespace ShippingAPI.Migrations
                     b.HasOne("ShippingAPI.Models.User", "PerformedBy")
                         .WithMany()
                         .HasForeignKey("PerformedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("PerformedBy");
@@ -392,12 +395,12 @@ namespace ShippingAPI.Migrations
                     b.HasOne("ShippingAPI.Models.User", "Finance")
                         .WithMany()
                         .HasForeignKey("FinanceId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ShippingAPI.Models.User", "Manager")
                         .WithMany()
                         .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ShippingAPI.Models.Shipment", "Shipment")
                         .WithMany("FuelClaims")
@@ -417,7 +420,7 @@ namespace ShippingAPI.Migrations
                     b.HasOne("ShippingAPI.Models.User", "Driver")
                         .WithMany("Shipments")
                         .HasForeignKey("DriverId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Driver");
@@ -428,12 +431,12 @@ namespace ShippingAPI.Migrations
                     b.HasOne("ShippingAPI.Models.User", "Finance")
                         .WithMany()
                         .HasForeignKey("FinanceId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ShippingAPI.Models.User", "Manager")
                         .WithMany("ApprovedWithdrawals")
                         .HasForeignKey("ManagerId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ShippingAPI.Models.Shipment", "Shipment")
                         .WithMany("Withdrawals")

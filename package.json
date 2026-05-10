@@ -1,0 +1,14 @@
+{
+  "name": "shipping-fuel-claim",
+  "version": "1.0.0",
+  "description": "Shipping Management System",
+  "scripts": {
+    "install-all": "npm install --prefix frontend",
+    "dev": "npx concurrently \"cd backend && dotnet run\" \"cd frontend && npm run dev\"",
+    "backend": "cd backend && dotnet run",
+    "frontend": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

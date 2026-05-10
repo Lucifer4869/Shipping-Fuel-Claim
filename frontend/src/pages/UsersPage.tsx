@@ -18,12 +18,15 @@ export default function UsersPage() {
   // State สำหรับเก็บข้อมูลในฟอร์ม (Username, Password, ชื่อ-สกุล, ฯลฯ)
   const [formData, setFormData] = useState({
     username: '',
+    email: '',
     password: '',
     fullName: '',
     role: 'Driver',
     vehiclePlate: '',
     isActive: true
   });
+//...
+// (I will use multi_replace for better precision)
   
   // State สำหรับเปิด/ปิดการมองเห็นรหัสผ่านใน Modal
   const [showPassword, setShowPassword] = useState(false);
@@ -93,6 +96,7 @@ export default function UsersPage() {
         id: editingUser.id, 
         data: {
           fullName: formData.fullName,
+          email: formData.email,
           role: formData.role,
           password: formData.password || undefined,
           vehiclePlate: formData.role === 'Driver' ? formData.vehiclePlate : '',
@@ -111,6 +115,7 @@ export default function UsersPage() {
     setEditingUser(u);
     setFormData({
       username: u.username,
+      email: u.email || '',
       password: '',
       fullName: u.fullName,
       role: u.role,
@@ -125,6 +130,7 @@ export default function UsersPage() {
     setEditingUser(null);
     setFormData({
       username: '',
+      email: '',
       password: '',
       fullName: '',
       role: 'Driver',
@@ -267,6 +273,18 @@ export default function UsersPage() {
                   className="input-field disabled:opacity-50"
                   placeholder="เช่น driver02"
                 />
+              </div>
+
+              <div>
+                <label className="label">อีเมล (สำหรับ Google Login)</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                  className="input-field"
+                  placeholder="example@gmail.com"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">ใช้ระบุอีเมล Google ที่จะให้เข้าใช้งานระบบได้</p>
               </div>
 
               <div>

@@ -188,6 +188,7 @@ public class AuditLogDto
 public class CreateUserRequest
 {
     [Required] public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     [Required] public string Password { get; set; } = string.Empty;
     [Required] public string FullName { get; set; } = string.Empty;
     [Required] public string Role { get; set; } = string.Empty;
@@ -197,6 +198,7 @@ public class CreateUserRequest
 public class UpdateUserRequest
 {
     public string? FullName { get; set; }
+    public string? Email { get; set; }
     public string? Role { get; set; }
     public string? Password { get; set; }
     public string? VehiclePlate { get; set; }
@@ -207,6 +209,7 @@ public class UserDto
 {
     public int Id { get; set; }
     public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public string VehiclePlate { get; set; } = string.Empty;
