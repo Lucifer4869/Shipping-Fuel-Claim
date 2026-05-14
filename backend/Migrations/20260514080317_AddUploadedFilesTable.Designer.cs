@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShippingAPI.Data;
@@ -11,9 +12,11 @@ using ShippingAPI.Data;
 namespace ShippingAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260514080317_AddUploadedFilesTable")]
+    partial class AddUploadedFilesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,10 +85,6 @@ namespace ShippingAPI.Migrations
                     b.Property<decimal>("ClaimAmount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("ClaimNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -112,10 +111,6 @@ namespace ShippingAPI.Migrations
 
                     b.Property<double>("MileageOut")
                         .HasColumnType("double precision");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("ReceiptUrl")
                         .HasColumnType("text");
@@ -307,7 +302,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "System Admin",
                             IsActive = true,
-                            PasswordHash = "$2a$11$21L40EKY5Fg3gXmhhQH38O44zHfCd8qb.u4qOv4kkaP4SKu80376O",
+                            PasswordHash = "$2a$11$Oz4IAGHc1Yldi7ENkZb5NeRaYliZI71AInFb8VJDo.neOttdTYQ.a",
                             Role = 3,
                             Username = "admin",
                             VehiclePlate = ""
@@ -319,7 +314,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "สมชาย ใจดี",
                             IsActive = true,
-                            PasswordHash = "$2a$11$M35.9vMBtzp5f071g27wnO5kHDOvKTI36498WDXma/7kU1MFNywwO",
+                            PasswordHash = "$2a$11$hjV0k8q7fZd4urQ..hmzReqH2MYfHbf58vf3BH415Q/csXa5DU.NO",
                             Role = 0,
                             Username = "driver01",
                             VehiclePlate = ""
@@ -331,7 +326,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "นายวิชัย รักงาน",
                             IsActive = true,
-                            PasswordHash = "$2a$11$86KLBmFcOhuKn0.r4ZmUFe2iRgBNHXH5B.Sfs0W20QSR4HKP1bq.K",
+                            PasswordHash = "$2a$11$NzYI6CvwyKGqlDpi9xOZ9.sP8fLcQYn6OkwVRrfOZ5mfpuY9KfVM6",
                             Role = 1,
                             Username = "manager01",
                             VehiclePlate = ""
@@ -343,7 +338,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "นางสาวมาลี บัญชีดี",
                             IsActive = true,
-                            PasswordHash = "$2a$11$HQE9frL/ZeYfOg0cGKuJHuSyFJKx6/JaQKIZeX6jtIlx06alBmYei",
+                            PasswordHash = "$2a$11$9f8vdBw7NChkAZBXQJyj1O67UOcqufcwOurVISMhaqjDynsh2yMui",
                             Role = 2,
                             Username = "finance01",
                             VehiclePlate = ""
@@ -398,10 +393,6 @@ namespace ShippingAPI.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("WithdrawalNumber")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

@@ -57,6 +57,7 @@ public class FuelClaimsController : ControllerBase
                 VehiclePlate = f.Shipment.VehiclePlate,//ทะเบียนรถ
                 DriverName = f.Shipment.Driver.FullName,// ชื่อพนักงานขับรถ
                 ClaimAmount = f.ClaimAmount,// จำนวนเงินที่เคลม
+                Reason = f.Reason, // เหตุผล
                 ReceiptUrl = f.ReceiptUrl,// รูปใบเสร็จ
                 MileageOut = f.MileageOut,// เลขไมล์ขาไป
                 MileageIn = f.MileageIn,// เลขไมล์ขากลับ
@@ -69,7 +70,8 @@ public class FuelClaimsController : ControllerBase
                 FinanceName = f.Finance != null ? f.Finance.FullName : null,// ชื่อผู้จัดการ
                 FinanceNote = f.FinanceNote,// หมายเหตุจากผู้จัดการ
                 FinanceApprovedAt = f.FinanceApprovedAt,// วันเวลาที่ผู้จัดการอนุมัติ
-                CreatedAt = f.CreatedAt// วันเวลาที่สร้าง
+                CreatedAt = f.CreatedAt,// วันเวลาที่สร้าง
+                ClaimNumber = f.ClaimNumber // รหัสอ้างอิง
             })
             .ToListAsync();
 
@@ -89,13 +91,26 @@ public class FuelClaimsController : ControllerBase
 
         if (shipment == null) return NotFound(new { message = "ไม่พบข้อมูลการเดินรถ" });
         if (shipment.DriverId != userId) return Forbid();
+        if (shipment.Status != ShipmentStatus.Active) 
+            return BadRequest(new { message = "ไม่สามารถส่งเคลมสำหรับงานที่ปิดไปแล้วหรือถูกยกเลิกได้" });
+        
+        if (request.ClaimAmount <= 0)
+            return BadRequest(new { message = "จำนวนเงินต้องมากกว่า 0" });
+
         if (request.MileageIn <= request.MileageOut)
             return BadRequest(new { message = "ระยะทางขากลับต้องมากกว่าขาไป" });
+
+        // Generate Claim Number: FLC-YYYYMMDD-XXXX
+        var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
+        var countToday = await _db.FuelClaims.CountAsync(f => f.CreatedAt.Date == DateTime.UtcNow.Date);
+        var claimNumber = $"FLC-{todayStr}-{(countToday + 1):D4}";
 
         var claim = new FuelClaim
         {
             ShipmentId = request.ShipmentId,//เลขที่ใบงาน
+            ClaimNumber = claimNumber, // รหัสอ้างอิง
             ClaimAmount = request.ClaimAmount,//จำนวนเงินที่เคลม
+            Reason = request.Reason, // เหตุผล
             ReceiptUrl = request.ReceiptUrl,//รูปใบเสร็จ
             MileageOut = request.MileageOut,//เลขไมล์ขาไป
             MileageIn = request.MileageIn,//เลขไมล์ขากลับ
@@ -130,7 +145,8 @@ public class FuelClaimsController : ControllerBase
         var claim = await _db.FuelClaims.FindAsync(id);
 
         if (claim == null) return NotFound();
-        // Removed check: if (claim.Status != FuelClaimStatus.Pending) return BadRequest(...)
+        if (claim.Status != FuelClaimStatus.Pending) 
+            return BadRequest(new { message = "รายการนี้ไม่อยู่ในสถานะที่รอการอนุมัติจาก Manager" });
 
         var oldStatus = claim.Status;//สถานะเดิม
         claim.Status = request.IsApproved ? FuelClaimStatus.ApprovedByManager : FuelClaimStatus.Rejected;//เปลี่ยนสถานะ
@@ -157,7 +173,8 @@ public class FuelClaimsController : ControllerBase
         var claim = await _db.FuelClaims.FindAsync(id);
 
         if (claim == null) return NotFound();
-        // Removed check for changing status easily
+        if (claim.Status != FuelClaimStatus.ApprovedByManager) 
+            return BadRequest(new { message = "รายการนี้ต้องผ่านการอนุมัติจาก Manager ก่อนจึงจะดำเนินการในขั้นตอน Finance ได้" });
 
         var oldStatus = claim.Status;//สถานะเดิม
         claim.Status = request.IsApproved ? FuelClaimStatus.ApprovedByFinance : FuelClaimStatus.Rejected;//เปลี่ยนสถานะ

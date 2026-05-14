@@ -3,8 +3,10 @@ namespace ShippingAPI.Models; //ส่วนของการเติมน้
 public class FuelClaim //โมเดลสำหรับเก็บประวัติการเติมน้ำมัน
 {
     public int Id { get; set; }//รหัสการเติมน้ำมัน
+    public string ClaimNumber { get; set; } = string.Empty; // รหัสอ้างอิง เช่น FLC-20260514-001
     public int ShipmentId { get; set; }//รหัสการเดินรถ
     public decimal ClaimAmount { get; set; }//จำนวนเงินที่ขอเบิก
+    public string Reason { get; set; } = string.Empty; // เหตุผลในการเคลม
     public string? ReceiptUrl { get; set; }//รูปภาพใบเสร็จ
     public double MileageOut { get; set; }//เลขไมล์ตอนออก
     public double MileageIn { get; set; }//เลขไมล์ตอนเข้า

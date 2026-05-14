@@ -13,6 +13,8 @@ interface AuditLog {
   performedByName: string; // ชื่อผู้ใช้งานที่ทำการแก้ไข
   performedByRole?: string; // บทบาทของผู้ใช้งานที่ทำการแก้ไข
   createdAt: string; // วันที่และเวลาที่ทำการแก้ไข
+  approve?: string; // การอนุมัติ (ถ้ามี)
+  referenceNumber?: string; // รหัสอ้างอิง (เช่น FLC-...)
 }
 
 const actionColors: Record<string, string> = {
@@ -98,7 +100,7 @@ export default function AuditLogsPage() {
           <table className="w-full">
             <thead className="bg-dark-900/50 border-b border-slate-700">
               <tr>
-                {['ตาราง', 'Record ID', 'การดำเนินการ', 'ผู้ดำเนินการ', 'ก่อนเปลี่ยน', 'หลังเปลี่ยน', 'วันที่/เวลา'].map(h => (
+                {['ตาราง', 'Claim ID / Record ID', 'การดำเนินการ', 'ผู้ดำเนินการ', 'ก่อนเปลี่ยน', 'หลังเปลี่ยน', 'วันที่/เวลา'].map(h => (
                   <th key={h} className="table-header text-left">{h}</th>
                 ))}
               </tr>
@@ -132,14 +134,26 @@ export default function AuditLogsPage() {
                     }
                   } catch { }
 
+                  const isRecent = new Date().getTime() - new Date(log.createdAt).getTime() < 5 * 60 * 1000;
+
                   return (
-                    <tr key={log.id} className="hover:bg-slate-700/20 transition-colors">
-                      <td className="table-cell">
-                        <span className="font-mono text-xs text-slate-300">{log.tableName}</span>
+                    <tr key={log.id} className={`hover:bg-slate-700/20 transition-colors ${isRecent ? 'bg-emerald-500/5' : ''}`}>
+                      <td className="table-cell relative">
+                        {isRecent && (
+                          <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
+                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-slate-300">{log.tableName}</span>
+                          {isRecent && (
+                            <span className="text-[9px] bg-emerald-500 text-white px-1 rounded font-bold animate-bounce">NEW</span>
+                          )}
+                        </div>
                       </td>
                       <td className="table-cell">
                         <div className="flex flex-col">
-                          <span className="text-xs text-slate-500 font-mono">ID: {log.recordId}</span>
+                          <span className="text-xs text-slate-300 font-bold font-mono">
+                            {log.referenceNumber || `ID: ${log.recordId}`}
+                          </span>
                           <span className={`text-[10px] font-bold uppercase tracking-tighter ${statusText !== '-' ? 'text-primary-400' : 'text-slate-600'}`}>
                             {statusText !== '-' ? `ST: ${statusText}` : ''}
                           </span>

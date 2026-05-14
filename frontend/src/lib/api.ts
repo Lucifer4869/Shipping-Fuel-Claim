@@ -1,19 +1,24 @@
 import axios from 'axios';
 
 // --- การตั้งค่าพื้นฐานของ API Client (Axios) ---
-const API_BASE = 'http://localhost:5000/api';
+export const BASE_URL = 'http://localhost:5000';
+const API_BASE = `${BASE_URL}/api`;
+
+export const getImageUrl = (url?: string) => {
+  if (!url) return '';
+  if (url.startsWith('http')) return url;
+  return `${BASE_URL}${url}`;
+};
 
 const api = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true, // อนุญาตให้ส่งและรับ Cookie (สำคัญมากสำหรับ HttpOnly Cookie)
 });
 
 // --- Interceptor: ขาออก (Request) ---
-// หน้าที่: แอบส่ง Token (JWT) ไปกับทุกๆ Request อัตโนมัติ เพื่อยืนยันตัวตนกับ Backend
+// (ไม่ต้องแนบ Token ใน Header แล้ว เพราะส่งผ่าน HttpOnly Cookie อัตโนมัติ)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  // ถ้ามี Token ในเครื่อง ให้ใส่เข้าไปใน Header "Authorization: Bearer <token>"
-  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
@@ -38,6 +43,7 @@ export const login = (data: { username: string; password: string }) =>
   api.post('/auth/login', data);
 export const googleLogin = (idToken: string) =>
   api.post('/auth/google-login', { idToken });
+export const logoutApi = () => api.post('/auth/logout');
 export const getMe = () => api.get('/auth/me');
 
 // --- กลุ่มฟังก์ชันเกี่ยวกับการเดินรถ (Shipments) ---

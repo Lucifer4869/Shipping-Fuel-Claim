@@ -69,7 +69,8 @@ public class WithdrawalsController : ControllerBase
                 FinanceName = w.Finance != null ? w.Finance.FullName : null, //ชื่อการเงิน
                 FinanceNote = w.FinanceNote, //หมายเหตุการเงิน
                 FinanceApprovedAt = w.FinanceApprovedAt, //วันที่อนุมัติโดยการเงิน
-                CreatedAt = w.CreatedAt //วันที่สร้าง
+                CreatedAt = w.CreatedAt, //วันที่สร้าง
+                WithdrawalNumber = w.WithdrawalNumber // รหัสอ้างอิง
             })
             .ToListAsync();
 
@@ -90,11 +91,20 @@ public class WithdrawalsController : ControllerBase
         if (shipment == null) return NotFound(new { message = "ไม่พบข้อมูลการเดินรถ" });
         if (shipment.DriverId != userId) return Forbid();
         if (shipment.Status != ShipmentStatus.Active)
-            return BadRequest(new { message = "การเดินรถนี้ไม่ได้อยู่ในสถานะ Active" });
+            return BadRequest(new { message = "ไม่สามารถขอเบิกเงินสำหรับงานที่ปิดไปแล้วหรือถูกยกเลิกได้" });
+
+        if (request.Amount <= 0)
+            return BadRequest(new { message = "จำนวนเงินที่ขอเบิกต้องมากกว่า 0" });
+
+        // Generate Withdrawal Number: WTH-YYYYMMDD-XXXX
+        var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
+        var countToday = await _db.Withdrawals.CountAsync(w => w.CreatedAt.Date == DateTime.UtcNow.Date);
+        var withdrawalNumber = $"WTH-{todayStr}-{(countToday + 1):D4}";
 
         var withdrawal = new Withdrawal
         {
             ShipmentId = request.ShipmentId, //รหัสการเดินรถ
+            WithdrawalNumber = withdrawalNumber, // รหัสอ้างอิง
             Amount = request.Amount, //จำนวนเงิน
             Reason = request.Reason, //เหตุผล
             AdditionalItems = request.AdditionalItems, //รายการเพิ่มเติม
@@ -130,7 +140,8 @@ public class WithdrawalsController : ControllerBase
             .FirstOrDefaultAsync(w => w.Id == id);
 
         if (withdrawal == null) return NotFound();
-        // Removed check: if (withdrawal.Status != WithdrawalStatus.Pending) return BadRequest(...)
+        if (withdrawal.Status != WithdrawalStatus.Pending) 
+            return BadRequest(new { message = "รายการนี้ไม่อยู่ในสถานะที่รอการอนุมัติจาก Manager" });
 
         var oldStatus = withdrawal.Status;
         withdrawal.Status = request.IsApproved ? WithdrawalStatus.ApprovedByManager : WithdrawalStatus.Rejected;
@@ -157,7 +168,8 @@ public class WithdrawalsController : ControllerBase
         var withdrawal = await _db.Withdrawals.FindAsync(id);
 
         if (withdrawal == null) return NotFound();
-        // Removed check: if (withdrawal.Status != WithdrawalStatus.ApprovedByManager) return BadRequest(...)
+        if (withdrawal.Status != WithdrawalStatus.ApprovedByManager) 
+            return BadRequest(new { message = "รายการนี้ต้องผ่านการอนุมัติจาก Manager ก่อนจึงจะดำเนินการในขั้นตอน Finance ได้" });
 
         var oldStatus = withdrawal.Status;
         withdrawal.Status = request.IsApproved ? WithdrawalStatus.ApprovedByFinance : WithdrawalStatus.Rejected;

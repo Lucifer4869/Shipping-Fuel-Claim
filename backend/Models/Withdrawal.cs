@@ -3,6 +3,7 @@ namespace ShippingAPI.Models;
 public class Withdrawal //ส่วนของการขอเบิกเงิน
 {
     public int Id { get; set; } //รหัสการเบิกเงิน
+    public string WithdrawalNumber { get; set; } = string.Empty; // รหัสอ้างอิง เช่น WTH-20260514-001
     public int ShipmentId { get; set; } //รหัสการเดินรถ
     public decimal Amount { get; set; } //จำนวนเงิน
     public string Reason { get; set; } = string.Empty; //เหตุผล

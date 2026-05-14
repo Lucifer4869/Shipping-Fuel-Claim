@@ -19,6 +19,18 @@ public class AuthController : ControllerBase
         _jwtService = jwtService;
     }
 
+    private void SetTokenCookie(string token)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false, // ถ้ารันบนเซิร์ฟเวอร์จริงที่เป็น HTTPS ควรเปลี่ยนเป็น true หรือตรวจสอบ Environment
+            SameSite = SameSiteMode.Lax, // ยอมรับการทำงานแบบ Cross-Origin บน Localhost
+            Expires = DateTime.UtcNow.AddDays(7)
+        };
+        Response.Cookies.Append("jwtToken", token, cookieOptions);
+    }
+
     /// <summary>ล็อกอินเพื่อรับ JWT Token</summary>
     [HttpPost("login")] //
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
@@ -30,6 +42,7 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง" });
 
         var token = _jwtService.GenerateToken(user);
+        SetTokenCookie(token);
 
         return Ok(new LoginResponse
         {
@@ -40,6 +53,14 @@ public class AuthController : ControllerBase
             UserId = user.Id
         });
     }
+
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete("jwtToken");
+        return Ok(new { message = "ออกจากระบบเรียบร้อยแล้ว" });
+    }
+
     [HttpPost("google-login")]//เพิ่ม api นี้ด้วยgoogle login โดยใช้ token 
     public async Task<ActionResult<LoginResponse>> GoogleLogin([FromBody] GoogleLoginRequest request)
     {
@@ -58,6 +79,8 @@ public class AuthController : ControllerBase
                 return Unauthorized(new { message = "บัญชีนี้ถูกระงับการใช้งาน" });//เพิ่ม check ถ้า user ไม่ active ให้ return error
 
             var token = _jwtService.GenerateToken(user);
+            SetTokenCookie(token);
+
             return Ok(new LoginResponse
             {
                 Token = token,

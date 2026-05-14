@@ -1,25 +1,48 @@
 services:
-  db:
-    image: postgres:15
-    container_name: shipping_db
+  db-master:
+    image: bitnami/postgresql:latest
+    container_name: shipping_db_master
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_USERNAME=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRES_DB}
     ports:
       - "${DB_PORT}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_master_data:/bitnami/postgresql
+
+  db-replica:
+    image: bitnami/postgresql:latest
+    container_name: shipping_db_replica
+    restart: always
+    depends_on:
+      - db-master
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_MASTER_HOST=db-master
+      - POSTGRESQL_USERNAME=${POSTGRES_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_replica_data:/bitnami/postgresql
 
   backend:
     build: ./backend
     container_name: shipping_api
     restart: always
     depends_on:
-      - db
+      - db-master
+      - db-replica
     environment:
-      - ConnectionStrings__DefaultConnection=Host=${DB_HOST};Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+      - ConnectionStrings__DefaultConnection=Host=db-master,db-replica;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Target Session Attributes=prefer-primary;
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
@@ -40,4 +63,5 @@ services:
       - "${FRONTEND_PORT}:80"
 
 volumes:
-  postgres_data:
+  postgres_master_data:
+  postgres_replica_data:

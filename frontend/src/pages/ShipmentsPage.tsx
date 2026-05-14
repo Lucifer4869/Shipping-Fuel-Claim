@@ -148,6 +148,28 @@ export default function ShipmentsPage() {
     if (!destination) { toast.error('กรุณาเลือกปลายทาง'); return; }
 
     setSubmitting(true);
+    
+    // Validation regex
+    const nameRegex = /^[A-Za-zก-๙\s]+$/;
+    const phoneRegex = /^[0-9]{9,10}$/; // 9-10 digits
+
+    if (form.senderName && !nameRegex.test(form.senderName)) {
+      toast.error('ชื่อผู้ส่งต้องเป็นตัวอักษรเท่านั้น');
+      setSubmitting(false); return;
+    }
+    if (form.senderPhone && !phoneRegex.test(form.senderPhone)) {
+      toast.error('เบอร์โทรศัพท์ผู้ส่งไม่ถูกต้อง (ต้องเป็นตัวเลข 9-10 หลัก)');
+      setSubmitting(false); return;
+    }
+    if (form.receiverName && !nameRegex.test(form.receiverName)) {
+      toast.error('ชื่อผู้รับต้องเป็นตัวอักษรเท่านั้น');
+      setSubmitting(false); return;
+    }
+    if (form.receiverPhone && !phoneRegex.test(form.receiverPhone)) {
+      toast.error('เบอร์โทรศัพท์ผู้รับไม่ถูกต้อง (ต้องเป็นตัวเลข 9-10 หลัก)');
+      setSubmitting(false); return;
+    }
+
     try {
       const payload = {
         vehiclePlate: form.vehiclePlate,
@@ -409,9 +431,9 @@ export default function ShipmentsPage() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <User className="w-4 h-4 text-emerald-400" />
-                <span className="text-slate-300 font-medium">ข้อมูลผู้ส่ง</span>
+                <span className="text-slate-300 font-medium text-xs">ชื่อ - เบอร์โทรผู้ส่ง</span>
               </div>
-              <p className="text-white text-sm">{detailShipment.senderName || '-'}</p>
+              <p className="text-white text-sm font-semibold">{detailShipment.senderName || '-'}</p>
               <div className="flex items-center gap-1 text-slate-400 text-xs mt-1">
                 <Phone className="w-3 h-3" />
                 {detailShipment.senderPhone || '-'}
@@ -420,9 +442,9 @@ export default function ShipmentsPage() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <User className="w-4 h-4 text-red-400" />
-                <span className="text-slate-300 font-medium">ข้อมูลผู้รับ</span>
+                <span className="text-slate-300 font-medium text-xs">ชื่อ - เบอร์โทรผู้รับ</span>
               </div>
-              <p className="text-white text-sm">{detailShipment.receiverName || '-'}</p>
+              <p className="text-white text-sm font-semibold">{detailShipment.receiverName || '-'}</p>
               <div className="flex items-center gap-1 text-slate-400 text-xs mt-1">
                 <Phone className="w-3 h-3" />
                 {detailShipment.receiverPhone || '-'}
@@ -487,15 +509,19 @@ export default function ShipmentsPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg space-y-3">
-                  <h4 className="text-xs font-semibold text-emerald-400 flex items-center gap-1"><User className="w-3.5 h-3.5"/> ข้อมูลผู้ส่ง</h4>
-                  <input className="input-field py-1.5 text-sm" placeholder="ชื่อผู้ส่ง" value={form.senderName} onChange={e => setForm({...form, senderName: e.target.value})} />
-                  <input className="input-field py-1.5 text-sm" placeholder="เบอร์โทรศัพท์" value={form.senderPhone} onChange={e => setForm({...form, senderPhone: e.target.value})} />
+                <div className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg space-y-2.5">
+                  <h4 className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5"><User className="w-3 h-3"/> ผู้ส่ง (ชื่อ-เบอร์โทร)</h4>
+                  <input className="input-field py-1.5 text-sm" placeholder="ระบุชื่อผู้ส่ง" value={form.senderName} 
+                    onChange={e => setForm({...form, senderName: e.target.value.replace(/[^A-Za-zก-๙\s]/g, '')})} />
+                  <input type="text" inputMode="numeric" className="input-field py-1.5 text-sm" placeholder="ระบุเบอร์โทรศัพท์" value={form.senderPhone} 
+                    onChange={e => setForm({...form, senderPhone: e.target.value.replace(/[^\d]/g, '')})} maxLength={10} />
                 </div>
-                <div className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg space-y-3">
-                  <h4 className="text-xs font-semibold text-red-400 flex items-center gap-1"><User className="w-3.5 h-3.5"/> ข้อมูลผู้รับ</h4>
-                  <input className="input-field py-1.5 text-sm" placeholder="ชื่อผู้รับ" value={form.receiverName} onChange={e => setForm({...form, receiverName: e.target.value})} />
-                  <input className="input-field py-1.5 text-sm" placeholder="เบอร์โทรศัพท์" value={form.receiverPhone} onChange={e => setForm({...form, receiverPhone: e.target.value})} />
+                <div className="p-3 bg-slate-800/50 border border-slate-700 rounded-lg space-y-2.5">
+                  <h4 className="text-[10px] font-bold text-red-400 uppercase tracking-wider flex items-center gap-1.5"><User className="w-3 h-3"/> ผู้รับ (ชื่อ-เบอร์โทร)</h4>
+                  <input className="input-field py-1.5 text-sm" placeholder="ระบุชื่อผู้รับ" value={form.receiverName} 
+                    onChange={e => setForm({...form, receiverName: e.target.value.replace(/[^A-Za-zก-๙\s]/g, '')})} />
+                  <input type="text" inputMode="numeric" className="input-field py-1.5 text-sm" placeholder="ระบุเบอร์โทรศัพท์" value={form.receiverPhone} 
+                    onChange={e => setForm({...form, receiverPhone: e.target.value.replace(/[^\d]/g, '')})} maxLength={10} />
                 </div>
               </div>
 

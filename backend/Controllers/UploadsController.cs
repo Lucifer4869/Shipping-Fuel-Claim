@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ShippingAPI.Data;
+using ShippingAPI.Models;
 
 namespace ShippingAPI.Controllers;
 
@@ -8,37 +11,56 @@ namespace ShippingAPI.Controllers;
 [Authorize] //ยืนยันตัวตนผู้ใช้
 public class UploadsController : ControllerBase
 {
-    private readonly IWebHostEnvironment _env;
+    private readonly AppDbContext _db;
 
-    public UploadsController(IWebHostEnvironment env) //IWebHostEnvironment เป็นตัวจัดการการอัปโหลดไฟล์
+    public UploadsController(AppDbContext db) //IWebHostEnvironment เป็นตัวจัดการการอัปโหลดไฟล์
     {
-        _env = env;//บันทึกข้อมูลลงฐานข้อมูล
+        _db = db;//บันทึกข้อมูลลงฐานข้อมูล
     }
 
     [HttpPost] //เป็นตัวจัดการการอัปโหลดไฟล์
     public async Task<IActionResult> UploadFile(IFormFile file)//อัปโหลดไฟล์
     {
         if (file == null || file.Length == 0)
-            return BadRequest(new { message = "No file uploaded" });
+            return BadRequest(new { message = "กรุณาเลือกไฟล์ที่ต้องการอัปโหลด" });
 
-        // Ensure wwwroot/uploads directory exists
-        var uploadsFolder = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads");
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
+        // Validate File Size (Max 5MB)
+        if (file.Length > 5 * 1024 * 1024)
+            return BadRequest(new { message = "ขนาดไฟล์ต้องไม่เกิน 5MB" });
 
-        // Generate unique filename
-        var fileExtension = Path.GetExtension(file.FileName);
-        var uniqueFileName = Guid.NewGuid().ToString() + fileExtension;
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+        // Validate File Extension
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+            return BadRequest(new { message = "อนุญาตเฉพาะไฟล์รูปภาพ (jpg, png) หรือ PDF เท่านั้น" });
 
-        // Save file
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+
+        var uploadedFile = new UploadedFile
         {
-            await file.CopyToAsync(stream);
-        }
+            Id = Guid.NewGuid(),
+            FileName = file.FileName,
+            ContentType = file.ContentType,
+            FileData = memoryStream.ToArray()
+        };
 
-        // Return URL (relative to root)
-        var fileUrl = $"/uploads/{uniqueFileName}";
+        _db.UploadedFiles.Add(uploadedFile);
+        await _db.SaveChangesAsync();
+
+        // Return URL to access this file via GetFile
+        var fileUrl = $"/api/uploads/{uploadedFile.Id}";
         return Ok(new { url = fileUrl });
+    }
+
+    [HttpGet("{id}")]
+    [AllowAnonymous] // อนุญาตให้ดึงรูปไปแสดงได้โดยไม่ต้องแนบ Token ในแท็ก img
+    public async Task<IActionResult> GetFile(Guid id)
+    {
+        var file = await _db.UploadedFiles.FindAsync(id);
+        if (file == null)
+            return NotFound();
+
+        return File(file.FileData, file.ContentType);
     }
 }

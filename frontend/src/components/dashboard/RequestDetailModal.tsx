@@ -1,4 +1,5 @@
 import { X, CheckCircle, XCircle, Clock, Banknote, Fuel, Navigation, MapPin, Truck, Image as ImageIcon } from 'lucide-react';
+import { getImageUrl } from '../../lib/api';
 
 interface RequestDetailModalProps {
   item: any;
@@ -61,14 +62,17 @@ export default function RequestDetailModal({ item, onClose }: RequestDetailModal
                   {item.additionalItems && <p className="text-xs text-slate-400">เพิ่มเติม: <span className="text-slate-200">{item.additionalItems}</span></p>}
                 </div>
               ) : (
-                <div className="mt-3 grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-[10px] text-slate-500 uppercase">เลขไมล์ขาไป</p>
-                    <p className="text-sm text-slate-200 font-mono">{item.mileageOut?.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-500 uppercase">เลขไมล์ขากลับ</p>
-                    <p className="text-sm text-slate-200 font-mono">{item.mileageIn?.toLocaleString()}</p>
+                <div className="mt-3 space-y-3">
+                  <p className="text-xs text-slate-400">เหตุผล: <span className="text-slate-200">{item.reason}</span></p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase">เลขไมล์ขาไป</p>
+                      <p className="text-sm text-slate-200 font-mono">{item.mileageOut?.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-500 uppercase">เลขไมล์ขากลับ</p>
+                      <p className="text-sm text-slate-200 font-mono">{item.mileageIn?.toLocaleString()}</p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -136,7 +140,7 @@ export default function RequestDetailModal({ item, onClose }: RequestDetailModal
                 <ImageIcon className="w-4 h-4"/> หลักฐานใบเสร็จ
               </label>
               <div className="bg-slate-800 rounded-xl p-2 border border-slate-700">
-                <img src={item.receiptUrl} alt="Receipt" className="w-full max-h-64 object-contain rounded-lg" />
+                <img src={getImageUrl(item.receiptUrl)} alt="Receipt" className="w-full max-h-64 object-contain rounded-lg" />
               </div>
             </div>
           )}

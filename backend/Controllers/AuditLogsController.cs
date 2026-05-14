@@ -27,10 +27,15 @@ public class AuditLogsController : ControllerBase
         [FromQuery] string? performedByName,
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
+        [FromQuery] string? approve,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
         var query = _db.AuditLogs.AsQueryable();
+        if (!string.IsNullOrEmpty(approve))
+        {
+            query = query.Where(a => a.TableName == "FuelClaims" && (a.Action == "Approve" || a.Action == "Reject"));
+        }
 
         if (!string.IsNullOrEmpty(tableName))
             query = query.Where(a => a.TableName == tableName);
@@ -54,11 +59,16 @@ public class AuditLogsController : ControllerBase
             query = query.Where(a => a.CreatedAt <= to.Value);
 
         var total = await query.CountAsync();
-        var logs = await query
+        var rawLogs = await query
             .OrderByDescending(a => a.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(a => new AuditLogDto
+            .ToListAsync();
+
+        var logs = new List<AuditLogDto>();
+        foreach (var a in rawLogs)
+        {
+            var dto = new AuditLogDto
             {
                 Id = a.Id,
                 TableName = a.TableName,
@@ -69,8 +79,24 @@ public class AuditLogsController : ControllerBase
                 PerformedByName = a.PerformedByName,
                 PerformedByRole = a.PerformedByRole,
                 CreatedAt = a.CreatedAt
-            })
-            .ToListAsync();
+            };
+
+            // ดึงรหัสที่จำง่ายมาแสดง (Reference Number)
+            if (a.TableName == "Shipments")
+            {
+                dto.ReferenceNumber = await _db.Shipments.Where(s => s.Id == a.RecordId).Select(s => s.TripNumber).FirstOrDefaultAsync();
+            }
+            else if (a.TableName == "FuelClaims")
+            {
+                dto.ReferenceNumber = await _db.FuelClaims.Where(f => f.Id == a.RecordId).Select(f => f.ClaimNumber).FirstOrDefaultAsync();
+            }
+            else if (a.TableName == "Withdrawals")
+            {
+                dto.ReferenceNumber = await _db.Withdrawals.Where(w => w.Id == a.RecordId).Select(w => w.WithdrawalNumber).FirstOrDefaultAsync();
+            }
+
+            logs.Add(dto);
+        }
 
         Response.Headers.Append("X-Total-Count", total.ToString());
         return Ok(logs);

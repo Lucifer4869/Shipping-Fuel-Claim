@@ -27,6 +27,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"], // ชื่อผู้รับ Token ที่ถูกต้อง
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)) // ใช้ Key ที่กำหนดในการยืนยันตัวตน
         };
+        
+        // ตั้งค่าให้ดึง Token จาก Cookie แทน Header (เพิ่มความปลอดภัย)
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.ContainsKey("jwtToken"))
+                {
+                    context.Token = context.Request.Cookies["jwtToken"];
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddAuthorization(); // เปิดใช้งานระบบตรวจสอบสิทธิ์ (Role-based access)
@@ -46,6 +59,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:5173", "http://localhost:5174", "http://localhost:3000") // อนุญาต URL ของ React
               .AllowAnyHeader() // อนุญาตทุก Header
               .AllowAnyMethod() // อนุญาตทุก Method (GET, POST, etc.)
+              .AllowCredentials() // อนุญาตให้ส่ง Cookie ข้ามโดเมนได้ (จำเป็นสำหรับ HttpOnly Cookie)
               .WithExposedHeaders("X-Total-Count")); // เปิดให้ Frontend อ่าน Header ตัวนี้ได้ (สำหรับ Pagination)
 });
 
@@ -83,6 +97,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build(); // สร้างแอปพลิเคชันจากสิ่งที่ตั้งค่าไว้ข้างบน
+
+// ตรวจสอบและสร้างโฟลเดอร์ wwwroot ถ้ายังไม่มี (เพื่อให้ UseStaticFiles ทำงานได้ถูกต้องตั้งแต่เริ่มรัน)
+var webRoot = app.Environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+if (!Directory.Exists(webRoot))
+{
+    Directory.CreateDirectory(webRoot);
+}
 
 // --- ส่วนการทำงานตอนเริ่มต้นแอป (Startup) ---
 using (var scope = app.Services.CreateScope())

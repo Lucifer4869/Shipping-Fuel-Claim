@@ -6,7 +6,7 @@ import { Plus, Wallet, Clock, CheckCircle, XCircle, X, Trash2, Search, Filter, E
 import RequestDetailModal from '../components/dashboard/RequestDetailModal';
 
 interface Withdrawal {
-  id: number; shipmentId: number; tripNumber: string; driverName: string; vehiclePlate: string;
+  id: number; withdrawalNumber: string; shipmentId: number; tripNumber: string; driverName: string; vehiclePlate: string;
   amount: number; reason: string; additionalItems?: string; status: string;
   managerName?: string; managerNote?: string; managerApprovedAt?: string;
   financeName?: string; financeNote?: string; financeApprovedAt?: string;
@@ -78,6 +78,20 @@ export default function WithdrawalsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
+    if (!form.shipmentId || !form.amount || !form.reason) {
+      toast.error('กรุณากรอกข้อมูลให้ครบถ้วน');
+      setSubmitting(false);
+      return;
+    }
+
+    const amount = parseFloat(form.amount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('จำนวนเงินต้องมากกว่า 0 และรูปแบบถูกต้อง');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       await createWithdrawal({
         shipmentId: parseInt(form.shipmentId), 
@@ -89,8 +103,8 @@ export default function WithdrawalsPage() {
       setShowModal(false);
       setForm({ shipmentId: '', amount: '', reason: '', additionalItems: '' });
       fetchData();
-    } catch { 
-      toast.error('เกิดข้อผิดพลาด'); 
+    } catch (err: any) { 
+      toast.error(err.response?.data?.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล'); 
     } finally { 
       setSubmitting(false); 
     }
@@ -176,7 +190,7 @@ export default function WithdrawalsPage() {
           <table className="w-full text-left">
             <thead className="bg-dark-900/50 border-b border-slate-700">
               <tr>
-                {['เลขที่เดินรถ', 'คนขับ', 'จำนวน', 'เหตุผล', 'สถานะ', 'วันที่', ''].map(h => (
+                {['ID', 'เลขที่เดินรถ', 'คนขับ', 'จำนวน', 'เหตุผล', 'สถานะ', 'วันที่', ''].map(h => (
                   <th key={h} className="table-header">{h}</th>
                 ))}
               </tr>
@@ -198,6 +212,9 @@ export default function WithdrawalsPage() {
                   const StatusIcon = status.icon;
                   return (
                     <tr key={w.id} className="hover:bg-slate-700/20 transition-colors">
+                      <td className="table-cell">
+                        <span className="text-xs font-bold text-slate-500 font-mono">{w.withdrawalNumber}</span>
+                      </td>
                       <td className="table-cell"><span className="font-mono text-primary-400 font-bold">{w.tripNumber}</span></td>
                       <td className="table-cell">
                         <p className="text-slate-200 text-sm">{w.driverName}</p>

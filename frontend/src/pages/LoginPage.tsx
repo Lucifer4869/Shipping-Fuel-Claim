@@ -150,6 +150,7 @@ export default function LoginPage() {
                 shape="rectangular"
                 text="signin_with"
                 size="large"
+                use_fedcm_for_prompt={true}
               />
             </div>
           </form>

@@ -6,7 +6,6 @@ interface User {
   userId: number; // ไอดีผู้ใช้
   fullName: string; // ชื่อ-นามสกุล
   role: 'Driver' | 'Manager' | 'Finance' | 'Admin'; // บทบาท (คนขับ, ผู้จัดการ, การเงิน, แอดมิน)
-  token: string; // รหัส Token สำหรับส่งไปกับ API
   vehiclePlate?: string; // ทะเบียนรถ (ถ้ามี)
 }
 
@@ -38,7 +37,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         userId: data.userId,
         fullName: data.fullName,
         role: data.role,
-        token: localStorage.getItem('token') || '',
         vehiclePlate: data.vehiclePlate,
       };
       // อัปเดตข้อมูลทั้งใน LocalStorage และ State
@@ -51,13 +49,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // ตรวจสอบเมื่อเปิดเว็บครั้งแรกว่าเคยล็อกอินค้างไว้ไหม
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    if (token && userData) {
+    if (userData) {
       setUser(JSON.parse(userData)); // ดึงค่าเก่ามาใช้ก่อน
-      refreshUser(); // แล้วค่อยโหลดค่าใหม่จาก Server ทับอีกทีเพื่อความชัวร์
+      refreshUser().finally(() => setIsLoading(false)); // แล้วค่อยโหลดค่าใหม่จาก Server ทับอีกทีเพื่อความชัวร์
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false); // จบการโหลดข้อมูล
   }, []);
 
   // ฟังก์ชันล็อกอินด้วย Username/Password
@@ -68,11 +66,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userId: data.userId,
       fullName: data.fullName,
       role: data.role,
-      token: data.token,
       vehiclePlate: data.vehiclePlate,
     };
-    // บันทึก Token และข้อมูลผู้ใช้ลงในเครื่อง (จะได้ไม่ต้องล็อกอินใหม่เวลา Refresh หน้าเว็บ)
-    localStorage.setItem('token', data.token);
+    // บันทึกข้อมูลผู้ใช้ลงในเครื่อง (ไม่ต้องเซฟ Token แล้วเพราะอยู่ใน Cookie)
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
@@ -85,17 +81,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userId: data.userId,
       fullName: data.fullName,
       role: data.role,
-      token: data.token,
       vehiclePlate: data.vehiclePlate,
     };
-    localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
 
   // ฟังก์ชันออกจากระบบ
-  const logout = () => {
-    localStorage.clear(); // ล้างข้อมูลทั้งหมดในเครื่อง
+  const logout = async () => {
+    try {
+      const { logoutApi } = await import('../lib/api');
+      await logoutApi(); // สั่งให้ Backend ล้าง Cookie ทิ้ง
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
+    localStorage.clear(); // ล้างข้อมูล User ออกจากเครื่อง
     setUser(null); // ล้างข้อมูลในตัวแปร
   };
 

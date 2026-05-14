@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getFuelClaims, createFuelClaim, managerApproveFuelClaim, financeApproveFuelClaim, getShipments, deleteFuelClaim, uploadFile } from '../lib/api';
+import { getFuelClaims, createFuelClaim, managerApproveFuelClaim, financeApproveFuelClaim, getShipments, deleteFuelClaim, uploadFile, getImageUrl } from '../lib/api';
 import toast from 'react-hot-toast';
 import { Plus, Fuel, Clock, CheckCircle, XCircle, X, Trash2, Search, Filter, Eye, FileText, ImageIcon } from 'lucide-react';
 import RequestDetailModal from '../components/dashboard/RequestDetailModal';
 
 interface FuelClaim {
-  id: number; shipmentId: number; tripNumber: string; driverName: string; vehiclePlate: string;
-  claimAmount: number; receiptUrl?: string; mileageOut: number; mileageIn: number;
+  id: number; claimNumber: string; shipmentId: number; tripNumber: string; driverName: string; vehiclePlate: string;
+  claimAmount: number; reason: string; receiptUrl?: string; mileageOut: number; mileageIn: number;
   status: string; origin: string; destination: string;
   managerName?: string; managerNote?: string; managerApprovedAt?: string;
   financeName?: string; financeNote?: string; financeApprovedAt?: string;
@@ -45,7 +45,7 @@ export default function FuelClaimsPage() {
   const [statusFilter, setStatusFilter] = useState('All');
   
   // State สำหรับเก็บข้อมูลในฟอร์มเคลมน้ำมัน (รวมถึงเลขไมล์และรูปใบเสร็จ)
-  const [form, setForm] = useState({ shipmentId: '', claimAmount: '', mileageOut: '', mileageIn: '', receiptUrl: '' });
+  const [form, setForm] = useState({ shipmentId: '', claimAmount: '', reason: '', mileageOut: '', mileageIn: '', receiptUrl: '' });
   // State สำหรับหมายเหตุการอนุมัติ
   const [note, setNote] = useState('');
   // State สถานะการส่งข้อมูลและอัปโหลดรูป
@@ -69,6 +69,20 @@ export default function FuelClaimsPage() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validate File Size (Max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('ขนาดไฟล์รูปภาพต้องไม่เกิน 5MB');
+      return;
+    }
+
+    // Validate File Type
+    const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('อนุญาตเฉพาะไฟล์รูปภาพ (JPG, PNG) หรือ PDF เท่านั้น');
+      return;
+    }
+
     setUploading(true);
     try {
       const res = await uploadFile(file);
@@ -84,20 +98,49 @@ export default function FuelClaimsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+
+    if (!form.shipmentId || !form.claimAmount || !form.reason || !form.mileageOut || !form.mileageIn) {
+      toast.error('กรุณากรอกข้อมูลให้ครบถ้วน');
+      setSubmitting(false);
+      return;
+    }
+
+    const amount = parseFloat(form.claimAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('จำนวนเงินต้องมากกว่า 0 และรูปแบบถูกต้อง');
+      setSubmitting(false);
+      return;
+    }
+
+    const outMile = parseFloat(form.mileageOut);
+    const inMile = parseFloat(form.mileageIn);
+    if (isNaN(outMile) || isNaN(inMile) || outMile < 0 || inMile < 0) {
+      toast.error('เลขไมล์ต้องเป็นตัวเลขที่ถูกต้อง (ไม่ติดลบ)');
+      setSubmitting(false);
+      return;
+    }
+
+    if (inMile < outMile) {
+      toast.error('เลขไมล์ขากลับต้องไม่น้อยกว่าเลขไมล์ขาไป');
+      setSubmitting(false);
+      return;
+    }
+
     try {
       await createFuelClaim({
         shipmentId: parseInt(form.shipmentId),
         claimAmount: parseFloat(form.claimAmount),
+        reason: form.reason,
         mileageOut: parseFloat(form.mileageOut),
         mileageIn: parseFloat(form.mileageIn),
         receiptUrl: form.receiptUrl
       });
       toast.success('ส่งคำขอเคลมน้ำมันสำเร็จ!');
       setShowModal(false);
-      setForm({ shipmentId: '', claimAmount: '', mileageOut: '', mileageIn: '', receiptUrl: '' });
+      setForm({ shipmentId: '', claimAmount: '', reason: '', mileageOut: '', mileageIn: '', receiptUrl: '' });
       fetchData();
-    } catch {
-      toast.error('เกิดข้อผิดพลาด');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
     } finally {
       setSubmitting(false);
     }
@@ -194,7 +237,7 @@ export default function FuelClaimsPage() {
           <table className="w-full text-left">
             <thead className="bg-dark-900/50 border-b border-slate-700">
               <tr>
-                {['เลขที่เดินรถ', 'คนขับ', 'จำนวนเงิน', 'ระยะทาง', 'สถานะ', 'วันที่', ''].map(h => (
+                {['ID', 'เลขที่เดินรถ', 'คนขับ', 'จำนวนเงิน', 'ระยะทาง', 'สถานะ', 'วันที่', ''].map(h => (
                   <th key={h} className="table-header">{h}</th>
                 ))}
               </tr>
@@ -216,6 +259,9 @@ export default function FuelClaimsPage() {
                   const StatusIcon = status.icon;
                   return (
                     <tr key={c.id} className="hover:bg-slate-700/20 transition-colors">
+                      <td className="table-cell">
+                        <span className="text-xs font-bold text-slate-500 font-mono">{c.claimNumber}</span>
+                      </td>
                       <td className="table-cell"><span className="font-mono text-primary-400 font-bold">{c.tripNumber}</span></td>
                       <td className="table-cell">
                         <p className="text-slate-200 text-sm">{c.driverName}</p>
@@ -295,6 +341,11 @@ export default function FuelClaimsPage() {
                 <input type="number" className="input-field" placeholder="0.00" value={form.claimAmount}
                   onChange={e => setForm({ ...form, claimAmount: e.target.value })} required />
               </div>
+              <div>
+                <label className="label">เหตุผลในการเคลม</label>
+                <textarea className="input-field min-h-[80px]" placeholder="ระบุเหตุผล เช่น เติมน้ำมันระหว่างทาง, ล้างรถ ฯลฯ" value={form.reason}
+                  onChange={e => setForm({ ...form, reason: e.target.value })} required />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label">เลขไมล์ขาไป</label>
@@ -316,7 +367,7 @@ export default function FuelClaimsPage() {
                         {uploading ? (
                           <div className="w-8 h-8 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin" />
                         ) : form.receiptUrl ? (
-                          <img src={form.receiptUrl} alt="Preview" className="h-20 object-contain rounded" />
+                          <img src={getImageUrl(form.receiptUrl)} alt="Preview" className="h-20 object-contain rounded" />
                         ) : (
                           <>
                             <ImageIcon className="w-8 h-8 text-slate-500" />

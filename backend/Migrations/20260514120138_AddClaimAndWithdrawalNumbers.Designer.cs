@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShippingAPI.Data;
@@ -11,9 +12,11 @@ using ShippingAPI.Data;
 namespace ShippingAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260514120138_AddClaimAndWithdrawalNumbers")]
+    partial class AddClaimAndWithdrawalNumbers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -112,10 +115,6 @@ namespace ShippingAPI.Migrations
 
                     b.Property<double>("MileageOut")
                         .HasColumnType("double precision");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("ReceiptUrl")
                         .HasColumnType("text");
@@ -307,7 +306,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "System Admin",
                             IsActive = true,
-                            PasswordHash = "$2a$11$21L40EKY5Fg3gXmhhQH38O44zHfCd8qb.u4qOv4kkaP4SKu80376O",
+                            PasswordHash = "$2a$11$dCK4wYr9YMWL.kUrnJuIM.uN6uuJq0AsZ09yrV.D0yGdxfOi3bjkK",
                             Role = 3,
                             Username = "admin",
                             VehiclePlate = ""
@@ -319,7 +318,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "สมชาย ใจดี",
                             IsActive = true,
-                            PasswordHash = "$2a$11$M35.9vMBtzp5f071g27wnO5kHDOvKTI36498WDXma/7kU1MFNywwO",
+                            PasswordHash = "$2a$11$xv4XN/acj7B/HCNu27rk2e/KW.gMR2B/oLFIwkfdqtr0egsAFb7oK",
                             Role = 0,
                             Username = "driver01",
                             VehiclePlate = ""
@@ -331,7 +330,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "นายวิชัย รักงาน",
                             IsActive = true,
-                            PasswordHash = "$2a$11$86KLBmFcOhuKn0.r4ZmUFe2iRgBNHXH5B.Sfs0W20QSR4HKP1bq.K",
+                            PasswordHash = "$2a$11$8cte9gIhcihqAbPk0XmNc.M7/G0LnPUqc0yOoQ0N3tqlnQjqUFkSO",
                             Role = 1,
                             Username = "manager01",
                             VehiclePlate = ""
@@ -343,7 +342,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "นางสาวมาลี บัญชีดี",
                             IsActive = true,
-                            PasswordHash = "$2a$11$HQE9frL/ZeYfOg0cGKuJHuSyFJKx6/JaQKIZeX6jtIlx06alBmYei",
+                            PasswordHash = "$2a$11$5GcbMRQ3kl4JWH5eSvUlDuxkBWHJSxMn1BeJUOGhQQvhYL2bra4Xm",
                             Role = 2,
                             Username = "finance01",
                             VehiclePlate = ""

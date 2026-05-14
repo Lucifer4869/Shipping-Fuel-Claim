@@ -25,6 +25,8 @@ export default function ReportsPage() {
   
   // State สำหรับเก็บข้อมูลรายงานที่ประมวลผลแล้ว
   const [reportData, setReportData] = useState<any[]>([]);
+  const [detailedWithdrawals, setDetailedWithdrawals] = useState<any[]>([]);
+  const [detailedClaims, setDetailedClaims] = useState<any[]>([]);
   // State สำหรับเก็บยอดรวมสรุปท้ายตาราง
   const [totals, setTotals] = useState({ fuel: 0, allowance: 0, grandTotal: 0 });
   // State สำหรับอัตราน้ำมันประจำวัน (บาท/ลิตร)
@@ -87,6 +89,19 @@ export default function ReportsPage() {
       });
 
       setReportData(mapped);
+
+      // สำหรับตารางรายละเอียดด้านล่าง
+      const allWithdrawals = wRes.data.filter((w: any) => {
+        const wDate = new Date(w.createdAt);
+        return wDate >= start && wDate <= end;
+      });
+      const allClaims = cRes.data.filter((c: any) => {
+        const cDate = new Date(c.createdAt);
+        return cDate >= start && cDate <= end;
+      });
+      setDetailedWithdrawals(allWithdrawals);
+      setDetailedClaims(allClaims);
+
       const fuelSum = mapped.reduce((sum: number, item: any) => sum + item.fuelAmount, 0);
       const allowSum = mapped.reduce((sum: number, item: any) => sum + item.allowance, 0);
       setTotals({ fuel: fuelSum, allowance: allowSum, grandTotal: fuelSum + allowSum });
@@ -144,7 +159,7 @@ export default function ReportsPage() {
     <div className="space-y-6 animate-fadeIn pb-20">
       <style>{`
         @media print {
-          @page { size: landscape; margin: 10mm; }
+          @page { size: portrait; margin: 10mm; }
           body * { visibility: hidden; background: white !important; }
           .print-area, .print-area * { visibility: visible; }
           .print-area { position: absolute; left: 0; top: 0; width: 100%; color: black !important; }
@@ -176,8 +191,8 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 no-print">
-        <div className="card p-5 space-y-4 lg:col-span-1">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="card p-5 space-y-4 lg:col-span-1 no-print">
           <h3 className="text-sm font-bold text-white flex items-center gap-2 mb-2">
             <Filter className="w-4 h-4" /> ตั้งค่ารายงาน
           </h3>
@@ -301,30 +316,34 @@ export default function ReportsPage() {
               <table className="w-full mb-8">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="border border-black text-[9px] py-1">ลำดับ</th>
-                    <th className="border border-black text-[9px] py-1">เลขที่แผน</th>
-                    <th className="border border-black text-[9px] py-1">ชื่อคนขับ</th>
-                    <th className="border border-black text-[9px] py-1">รายการ</th>
-                    <th className="border border-black text-[9px] py-1">จำนวนเงิน</th>
-                    <th className="border border-black text-[9px] py-1">สถานะ</th>
+                    <th className="border border-black text-[9px] py-1 w-[5%]">ลำดับ</th>
+                    <th className="border border-black text-[9px] py-1 w-[20%]">เลขที่แผน</th>
+                    <th className="border border-black text-[9px] py-1 w-[25%]">ชื่อคนขับ</th>
+                    <th className="border border-black text-[9px] py-1 w-[20%]">เหตุผล</th>
+                    <th className="border border-black text-[9px] py-1 w-[15%]">จำนวนเงิน</th>
+                    <th className="border border-black text-[9px] py-1 w-[15%]">สถานะ</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {reportData.length > 0 ? reportData.map((item, idx) => (
+                  {detailedWithdrawals.length > 0 ? detailedWithdrawals.map((item, idx) => {
+                    const statusText = item.status === 'ApprovedByFinance' ? 'จ่ายเงินแล้ว' :
+                                       item.status === 'Rejected' ? 'ถูกปฏิเสธ' : 
+                                       item.status === 'ApprovedByManager' ? 'รอ Finance จ่ายเงิน' : 'รอ Manager อนุมัติ';
+                    return (
                     <tr key={`w-${idx}`}>
                       <td className="border border-black text-[9px] py-1">{idx + 1}</td>
-                      <td className="border border-black text-[9px] py-1 font-mono">{item.tripNumber}</td>
+                      <td className="border border-black text-[9px] py-1 font-mono">{item.withdrawalNumber || item.tripNumber}</td>
                       <td className="border border-black text-[9px] py-1">{item.driverName}</td>
-                      <td className="border border-black text-[9px] py-1 text-left px-2">เบิก/เคลมน้ำมัน</td>
-                      <td className="border border-black text-[9px] py-1 text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className="border border-black text-[9px] py-1 text-left px-2">{item.reason || 'เบิกเงิน'}</td>
+                      <td className="border border-black text-[9px] py-1 text-right px-2">{item.amount > 0 ? item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
                       <td className={`border border-black text-[9px] py-1 font-bold ${
-                        item.withdrawalStatus === 'จ่ายเงินแล้ว' ? 'text-emerald-700' : 
-                        item.withdrawalStatus === 'ถูกปฏิเสธ' ? 'text-red-600' : 'text-amber-600'
+                        statusText === 'จ่ายเงินแล้ว' ? 'text-emerald-700' : 
+                        statusText === 'ถูกปฏิเสธ' ? 'text-red-600' : 'text-amber-600'
                       }`}>
-                        {item.withdrawalStatus}
+                        {statusText}
                       </td>
                     </tr>
-                  )) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเบิกเงิน</td></tr>}
+                  )}) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเบิกเงิน</td></tr>}
                 </tbody>
               </table>
 
@@ -332,50 +351,54 @@ export default function ReportsPage() {
               <table className="w-full mb-8">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="border border-black text-[9px] py-1">ลำดับ</th>
-                    <th className="border border-black text-[9px] py-1">เลขที่แผน</th>
-                    <th className="border border-black text-[9px] py-1">ชื่อคนขับ</th>
-                    <th className="border border-black text-[9px] py-1">ทะเบียนรถ</th>
-                    <th className="border border-black text-[9px] py-1">จำนวนเงิน</th>
-                    <th className="border border-black text-[9px] py-1">สถานะ</th>
+                    <th className="border border-black text-[9px] py-1 w-[5%]">ลำดับ</th>
+                    <th className="border border-black text-[9px] py-1 w-[20%]">เลขที่แผน</th>
+                    <th className="border border-black text-[9px] py-1 w-[25%]">ชื่อคนขับ</th>
+                    <th className="border border-black text-[9px] py-1 w-[20%]">เหตุผล</th>
+                    <th className="border border-black text-[9px] py-1 w-[15%]">จำนวนเงิน</th>
+                    <th className="border border-black text-[9px] py-1 w-[15%]">สถานะ</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {reportData.length > 0 ? reportData.map((item, idx) => (
+                  {detailedClaims.length > 0 ? detailedClaims.map((item, idx) => {
+                    const statusText = item.status === 'ApprovedByFinance' ? 'จ่ายเงินแล้ว' :
+                                       item.status === 'Rejected' ? 'ถูกปฏิเสธ' : 
+                                       item.status === 'ApprovedByManager' ? 'รอ Finance จ่ายเงิน' : 'รอ Manager อนุมัติ';
+                    return (
                     <tr key={`c-${idx}`}>
                       <td className="border border-black text-[9px] py-1">{idx + 1}</td>
-                      <td className="border border-black text-[9px] py-1 font-mono">{item.tripNumber}</td>
+                      <td className="border border-black text-[9px] py-1 font-mono">{item.claimNumber || item.tripNumber}</td>
                       <td className="border border-black text-[9px] py-1">{item.driverName}</td>
-                      <td className="border border-black text-[9px] py-1">{item.vehiclePlate}</td>
-                      <td className="border border-black text-[9px] py-1 text-right px-2">{item.fuelAmount > 0 ? item.fuelAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className="border border-black text-[9px] py-1 text-left px-2">{item.reason || 'เคลมน้ำมัน'}</td>
+                      <td className="border border-black text-[9px] py-1 text-right px-2">{item.claimAmount > 0 ? item.claimAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
                       <td className={`border border-black text-[9px] py-1 font-bold ${
-                        item.claimStatus === 'จ่ายเงินแล้ว' ? 'text-emerald-700' : 
-                        item.claimStatus === 'ถูกปฏิเสธ' ? 'text-red-600' : 'text-amber-600'
+                        statusText === 'จ่ายเงินแล้ว' ? 'text-emerald-700' : 
+                        statusText === 'ถูกปฏิเสธ' ? 'text-red-600' : 'text-amber-600'
                       }`}>
-                        {item.claimStatus}
+                        {statusText}
                       </td>
                     </tr>
-                  )) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเคลมน้ำมัน</td></tr>}
+                  )}) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเคลมน้ำมัน</td></tr>}
                 </tbody>
               </table>
             </div>
 
             {/* Footer Signatures */}
-            <div className="mt-16 grid grid-cols-3 gap-8 text-center">
+            <div className="mt-16 grid grid-cols-3 gap-4 text-center print:break-inside-avoid">
               <div className="space-y-12">
-                <p className="text-xs">ผู้จัดทำ..............................................</p>
-                <p className="text-xs font-bold">( .................................................. )</p>
-                <p className="text-[10px]">วันที่ ....../....../......</p>
+                <p className="text-[11px] whitespace-nowrap">ผู้จัดทำ ........................................</p>
+                <p className="text-[11px] font-bold whitespace-nowrap">( ............................................ )</p>
+                <p className="text-[10px] whitespace-nowrap">วันที่ ....../....../......</p>
               </div>
               <div className="space-y-12">
-                <p className="text-xs">ผู้ตรวจสอบ..............................................</p>
-                <p className="text-xs font-bold">( .................................................. )</p>
-                <p className="text-[10px]">วันที่ ....../....../......</p>
+                <p className="text-[11px] whitespace-nowrap">ผู้ตรวจสอบ ........................................</p>
+                <p className="text-[11px] font-bold whitespace-nowrap">( ............................................ )</p>
+                <p className="text-[10px] whitespace-nowrap">วันที่ ....../....../......</p>
               </div>
               <div className="space-y-12">
-                <p className="text-xs ">ผู้อนุมัติจ่ายเงิน..............................................</p>
-                <p className="text-xs font-bold">( .................................................. )</p>
-                <p className="text-[10px]">วันที่ ....../....../......</p>
+                <p className="text-[11px] whitespace-nowrap">ผู้อนุมัติจ่ายเงิน ........................................</p>
+                <p className="text-[11px] font-bold whitespace-nowrap">( ............................................ )</p>
+                <p className="text-[10px] whitespace-nowrap">วันที่ ....../....../......</p>
               </div>
             </div>
           </div>

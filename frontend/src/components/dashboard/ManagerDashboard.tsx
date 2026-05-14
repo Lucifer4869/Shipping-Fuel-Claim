@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getWithdrawals, getFuelClaims, managerApproveFuelClaim, managerApproveWithdrawal } from '../../lib/api';
+import { getWithdrawals, getFuelClaims, managerApproveFuelClaim, managerApproveWithdrawal, getImageUrl } from '../../lib/api';
 import { CheckCircle, XCircle, FileText, Banknote, Fuel, Search, X, Image as ImageIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -267,7 +267,7 @@ export default function ManagerDashboard() {
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2"><ImageIcon className="w-4 h-4"/> รูปหลักฐานใบเสร็จ</label>
                   <div className="bg-slate-800 rounded-lg p-2 border border-slate-700 flex justify-center">
-                    <img src={selectedItem.receiptUrl} alt="Receipt" className="max-h-48 rounded object-contain" />
+                    <img src={getImageUrl(selectedItem.receiptUrl)} alt="Receipt" className="max-h-48 rounded object-contain" />
                   </div>
                 </div>
               )}
