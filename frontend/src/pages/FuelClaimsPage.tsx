@@ -107,7 +107,7 @@ export default function FuelClaimsPage() {
 
     const amount = parseFloat(form.claimAmount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error('จำนวนเงินต้องมากกว่า 0 และรูปแบบถูกต้อง');
+      toast.error('ใส่จำนวนเงินไม่ถูกต้อง');
       setSubmitting(false);
       return;
     }

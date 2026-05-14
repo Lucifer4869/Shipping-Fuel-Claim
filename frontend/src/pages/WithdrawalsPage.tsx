@@ -87,7 +87,7 @@ export default function WithdrawalsPage() {
 
     const amount = parseFloat(form.amount);
     if (isNaN(amount) || amount <= 0) {
-      toast.error('จำนวนเงินต้องมากกว่า 0 และรูปแบบถูกต้อง');
+      toast.error('ใส่จำนวนเงินไม่ถูกต้อง');
       setSubmitting(false);
       return;
     }
