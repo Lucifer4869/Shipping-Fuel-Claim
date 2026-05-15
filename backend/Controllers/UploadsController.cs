@@ -43,6 +43,8 @@ public class UploadsController : ControllerBase
         var hashBytes = sha256.ComputeHash(fileData);
         var contentHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
 
+        Console.WriteLine($"[DEBUG] Uploading file: {file.FileName}, Hash: {contentHash}");
+
         // Check if file already exists
         var existingFile = await _db.UploadedFiles
             .FirstOrDefaultAsync(f => f.ContentHash == contentHash);
