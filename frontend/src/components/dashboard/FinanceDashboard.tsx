@@ -17,11 +17,11 @@ export default function FinanceDashboard() {
       const [wRes, cRes] = await Promise.all([getWithdrawals(), getFuelClaims()]);
       
       const withdrawals = wRes.data.map((w: any) => ({
-        ...w, type: 'Withdrawal', title: 'เบิกเงิน', amount: w.amount, date: new Date(w.createdAt)
+        ...w, type: 'Withdrawal', title: 'เบิกเงิน', amount: w.amount, reason: w.reason, date: new Date(w.createdAt)
       }));
       
       const claims = cRes.data.map((c: any) => ({
-        ...c, type: 'FuelClaim', title: 'เคลมน้ำมัน', amount: c.claimAmount, date: new Date(c.createdAt)
+        ...c, type: 'FuelClaim', title: 'เคลมน้ำมัน', amount: c.claimAmount, reason: c.reason, date: new Date(c.createdAt)
       }));
 
       const allItems = [...withdrawals, ...claims];
