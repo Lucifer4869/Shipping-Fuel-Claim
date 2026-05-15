@@ -149,6 +149,7 @@ export default function ManagerDashboard() {
               <tr>
                 <th className="table-header text-left">ประเภท</th>
                 <th className="table-header text-left">ชื่อคนขับ</th>
+                <th className="table-header text-left">เหตุผล</th>
                 <th className="table-header text-left">เลขเดินรถ/ทะเบียน</th>
                 <th className="table-header text-right">จำนวนเงิน</th>
                 <th className="table-header text-center">วันที่</th>
@@ -166,6 +167,7 @@ export default function ManagerDashboard() {
                       </span>
                     </td>
                     <td className="table-cell text-slate-200">{item.driverName}</td>
+                    <td className="table-cell text-slate-400 text-sm max-w-[150px] truncate" title={item.reason}>{item.reason}</td>
                     <td className="table-cell">
                       <div className="flex flex-col">
                         <span className="font-mono text-xs text-slate-400">{item.tripNumber}</span>

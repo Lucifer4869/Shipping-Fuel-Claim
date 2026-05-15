@@ -237,7 +237,7 @@ export default function FuelClaimsPage() {
           <table className="w-full text-left">
             <thead className="bg-dark-900/50 border-b border-slate-700">
               <tr>
-                {['ID', 'เลขที่เดินรถ', 'คนขับ', 'จำนวนเงิน', 'ระยะทาง', 'สถานะ', 'วันที่', ''].map(h => (
+                {['ID', 'เลขที่เดินรถ', 'คนขับ', 'จำนวนเงิน', 'เหตุผล', 'ระยะทาง', 'สถานะ', 'วันที่', ''].map(h => (
                   <th key={h} className="table-header">{h}</th>
                 ))}
               </tr>
@@ -268,6 +268,7 @@ export default function FuelClaimsPage() {
                         <p className="text-[10px] text-slate-500">{c.vehiclePlate}</p>
                       </td>
                       <td className="table-cell"><span className="font-bold text-white text-lg">฿{c.claimAmount.toLocaleString()}</span></td>
+                      <td className="table-cell text-slate-400 text-sm max-w-[150px] truncate" title={c.reason}>{c.reason}</td>
                       <td className="table-cell">
                         <div className="text-xs text-slate-400">
                            {c.mileageIn - c.mileageOut} กม.
