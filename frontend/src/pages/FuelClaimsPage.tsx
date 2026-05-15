@@ -361,13 +361,26 @@ export default function FuelClaimsPage() {
               <div>
                 <label className="label">หลักฐานใบเสร็จ</label>
                 <div className="mt-1 flex items-center gap-4">
-                  <label className="flex-1">
-                    <div className="relative group cursor-pointer">
-                      <div className="input-field py-8 border-dashed border-2 flex flex-col items-center justify-center gap-2 group-hover:border-primary-500 transition-colors">
+                  <div className="flex-1 relative">
+                    <div className="relative group">
+                      <div className="input-field py-8 border-dashed border-2 flex flex-col items-center justify-center gap-2 group-hover:border-primary-500 transition-colors cursor-pointer" 
+                           onClick={() => !form.receiptUrl && document.getElementById('receipt-upload')?.click()}>
                         {uploading ? (
                           <div className="w-8 h-8 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin" />
                         ) : form.receiptUrl ? (
-                          <img src={getImageUrl(form.receiptUrl)} alt="Preview" className="h-20 object-contain rounded" />
+                          <div className="relative">
+                            <img src={getImageUrl(form.receiptUrl)} alt="Preview" className="h-24 object-contain rounded-lg shadow-lg border border-slate-700" />
+                            <button 
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setForm({ ...form, receiptUrl: '' });
+                              }}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                         ) : (
                           <>
                             <ImageIcon className="w-8 h-8 text-slate-500" />
@@ -375,9 +388,9 @@ export default function FuelClaimsPage() {
                           </>
                         )}
                       </div>
-                      <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                      <input id="receipt-upload" type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
                     </div>
-                  </label>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
