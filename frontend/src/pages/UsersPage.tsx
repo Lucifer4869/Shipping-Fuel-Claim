@@ -195,7 +195,20 @@ export default function UsersPage() {
                       <div className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center text-slate-300">
                         <UserCircle className="w-5 h-5" />
                       </div>
-                      <span className="font-medium text-slate-200">{u.username}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-slate-200 flex items-center gap-2">
+                          {u.username}
+                          {(() => {
+                            const createdDate = new Date(u.createdAt);
+                            const now = new Date();
+                            const diffInHours = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60);
+                            return diffInHours < 24 ? (
+                              <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-[9px] font-black text-white animate-pulse">NEW</span>
+                            ) : null;
+                          })()}
+                        </span>
+                        {u.email && <span className="text-[10px] text-slate-500">{u.email}</span>}
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-slate-300">{u.fullName}</td>
