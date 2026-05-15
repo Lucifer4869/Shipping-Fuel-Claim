@@ -100,15 +100,13 @@ public class FuelClaimsController : ControllerBase
         if (request.MileageIn <= request.MileageOut)
             return BadRequest(new { message = "ระยะทางขากลับต้องมากกว่าขาไป" });
 
-        // Check for duplicate claim (Same shipment, same amount, same receipt)
-        var isDuplicate = await _db.FuelClaims.AnyAsync(f => 
-            f.ShipmentId == request.ShipmentId && 
-            f.ClaimAmount == request.ClaimAmount && 
-            f.ReceiptUrl == request.ReceiptUrl &&
-            f.Status != FuelClaimStatus.Rejected); // ยกเว้นรายการที่ถูกปฏิเสธไปแล้ว สามารถส่งใหม่ได้
+        // Check for duplicate receipt image (Global check: This image must not have been used before)
+        var isImageUsed = await _db.FuelClaims.AnyAsync(f => 
+            f.ReceiptUrl == request.ReceiptUrl && 
+            f.Status != FuelClaimStatus.Rejected); // ยกเว้นรายการที่ถูกปฏิเสธไปแล้ว สามารถเอารูปมาส่งใหม่ได้
 
-        if (isDuplicate)
-            return BadRequest(new { message = "รายการเคลมนี้ถูกส่งเข้าระบบแล้ว (ตรวจพบข้อมูลซ้ำ)" });
+        if (isImageUsed)
+            return BadRequest(new { message = "ใบเสร็จนี้เคยถูกใช้งานไปแล้วในระบบ ห้ามใช้ซ้ำ (ตรวจพบรูปภาพซ้ำในรายการอื่น)" });
 
         // Generate Claim Number: FLC-YYYYMMDD-XXXX
         var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
