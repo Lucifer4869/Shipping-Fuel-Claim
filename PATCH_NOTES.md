@@ -14,6 +14,7 @@
    - ห้ามจำนวนเงินติดลบ หรือเป็น 0
    - ห้ามเลขไมล์ขากลับน้อยกว่าเลขไมล์ขาไป
    - จำกัดไฟล์ใบเสร็จไม่เกิน 5MB และอนุญาตเฉพาะไฟล์นามสกุล **JPG, PNG และ PDF** เท่านั้น
+6. **Security Hardening (Seeded Users):** ลบข้อมูล User ทดสอบออกจาก Code (`AppDbContext.cs`) ทั้งหมด เพื่อป้องกันความเสี่ยงในการถูกเข้าถึงโดยไม่ได้รับอนุญาต และสร้างรหัสผ่าน Admin เริ่มต้นที่มีความปลอดภัยสูงขึ้นแทน
 
 ---
 
@@ -64,6 +65,13 @@
 2. **File Storage Management:** ตอนนี้ไฟล์อัปโหลดถูกบันทึกลงใน Database (Byte Array / Memory) ในตาราง `UploadedFiles` หากไฟล์มีจำนวนมาก Database จะใหญ่ขึ้นอย่างรวดเร็ว **(ควรเปลี่ยนไปใช้การเก็บไฟล์ลง Disk, S3, หรือ Cloud Storage ตัวอื่นในอนาคต)**
 3. **Notification System:** ปัจจุบัน User ต้องเข้ามาเช็คสถานะเอง หากสามารถทำระบบแจ้งเตือน (Line Notify หรือ Web Push) เมื่อถึงคิวที่ต้องอนุมัติ จะช่วยให้ Workflow ไหลลื่นขึ้น
 4. **Edit Functionality:** ตอนนี้ถ้ารายการถูกปฎิเสธ (Rejected) User ต้องสร้างพิมพ์ใหม่ทั้งหมด ควรมีฟังก์ชัน Clone หรือแก้ไขรายการเดิมแล้วส่งพิจารณาใหม่
+
+---
+
+## ⏱️ Changelog Timeline (15 May 2026)
+* **11:28 น.** - **[Security] Seed Data Cleanup:** ลบข้อมูล User ทดสอบ (Driver, Manager, Finance) ออกจาก `AppDbContext.cs` เพื่อความปลอดภัย
+* **11:29 น.** - **[Security] Admin Credential Update:** เปลี่ยน Username และ Password สำหรับ Admin เป็นค่าที่ปลอดภัยยิ่งขึ้น (`master_admin`)
+* **11:30 น.** - **[System] Database Reset & Documentation:** รีเซ็ต Database ใหม่และอัปเดตข้อมูลบัญชีใน `README.md` และ `PATCH_NOTES.md`
 
 ---
 

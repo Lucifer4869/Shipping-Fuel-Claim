@@ -103,17 +103,22 @@
 
 ### 🛠️ วิธีที่ 2: ติดตั้งแบบ Manual (สำหรับนักพัฒนา)
 
-#### **Backend (.NET 8)**
+#### **1. ตั้งค่าสภาพแวดล้อม (Environment Setup)**
+เพื่อความปลอดภัย ระบบจะไม่เก็บรหัสผ่านจริงไว้ใน Source Control ให้ทำตามขั้นตอนดังนี้:
+1. ก๊อปปี้ไฟล์ `.env.example` และเปลี่ยนชื่อเป็น `.env`
+2. ใส่ข้อมูลจริงของคุณในไฟล์ `.env` (เช่น รหัสผ่านฐานข้อมูล, JWT Key, Google Client ID)
+
+#### **2. Backend (.NET 8)**
 1. ติดตั้ง [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) และ **PostgreSQL**
 2. ไปที่โฟลเดอร์ `backend`
-3. แก้ไข Connection String ใน `appsettings.json` ให้ตรงกับฐานข้อมูลของคุณ
+3. (ตัวเลือก) หากไม่ใช้ Environment Variables ให้สร้างไฟล์ `appsettings.Development.json` โดยดูโครงสร้างจาก `appsettings.json`
 4. รันคำสั่ง:
    ```bash
    dotnet ef database update
    dotnet run --urls "http://localhost:5000"
    ```
 
-#### **Frontend (React)**
+#### **3. Frontend (React)**
 1. ติดตั้ง [Node.js](https://nodejs.org/) (แนะนำ v18+)
 2. ไปที่โฟลเดอร์ `frontend`
 3. รันคำสั่ง:
@@ -189,10 +194,10 @@
 
 ---
 
-## 🔐 ข้อมูลบัญชีทดสอบ
+## 🔐 ข้อมูลบัญชีผู้ดูแลระบบ (Initial Account)
 | Role | Username | Password |
 |------|----------|----------|
-| Admin | `admin` | `admin123` |
-| Driver | `driver01` | `driver123` |
-| Manager | `manager01` | `manager123` |
-| Finance | `finance01` | `finance123` |
+| Admin | `master_admin` | `Shipping_Master_2026!` |
+
+> [!IMPORTANT]
+> เพื่อความปลอดภัย ระบบได้ทำการลบบัญชีทดสอบ (Driver, Manager, Finance) ออกจาก Code เบื้องต้นแล้ว กรุณาใช้บัญชี Admin ด้านบนเข้าไปสร้าง User และกำหนด Role ต่างๆ ผ่านเมนู User Management ในระบบภายหลังครับ
