@@ -45,34 +45,40 @@ public class UploadsController : ControllerBase
 
         Console.WriteLine($"[DEBUG] Uploading file: {file.FileName}, Hash: {contentHash}");
 
-        // Check if file already exists
-        var existingFile = await _db.UploadedFiles
-            .FirstOrDefaultAsync(f => f.ContentHash == contentHash);
-
-        if (existingFile != null)
+        try 
         {
-            Console.WriteLine($"[DEBUG] Duplicate found! Existing File ID: {existingFile.Id}");
-            // If exists, return existing URL without saving again
-            return Ok(new { url = $"/api/uploads/{existingFile.Id}", isDuplicate = true });
+            // Check if file already exists
+            var existingFile = await _db.UploadedFiles
+                .FirstOrDefaultAsync(f => f.ContentHash == contentHash);
+
+            if (existingFile != null)
+            {
+                Console.WriteLine($"[DEBUG] Duplicate found! Existing File ID: {existingFile.Id}");
+                return Ok(new { url = $"/api/uploads/{existingFile.Id}", isDuplicate = true });
+            }
+            
+            Console.WriteLine("[DEBUG] No duplicate found. Saving new file...");
+
+            var uploadedFile = new UploadedFile
+            {
+                Id = Guid.NewGuid(),
+                FileName = file.FileName,
+                ContentType = file.ContentType,
+                FileData = fileData,
+                ContentHash = contentHash
+            };
+
+            _db.UploadedFiles.Add(uploadedFile);
+            await _db.SaveChangesAsync();
+
+            var fileUrl = $"/api/uploads/{uploadedFile.Id}";
+            return Ok(new { url = fileUrl, isDuplicate = false });
         }
-        
-        Console.WriteLine("[DEBUG] No duplicate found. Saving new file...");
-
-        var uploadedFile = new UploadedFile
+        catch (Exception ex)
         {
-            Id = Guid.NewGuid(),
-            FileName = file.FileName,
-            ContentType = file.ContentType,
-            FileData = fileData,
-            ContentHash = contentHash
-        };
-
-        _db.UploadedFiles.Add(uploadedFile);
-        await _db.SaveChangesAsync();
-
-        // Return URL to access this file via GetFile
-        var fileUrl = $"/api/uploads/{uploadedFile.Id}";
-        return Ok(new { url = fileUrl, isDuplicate = false });
+            Console.WriteLine($"[ERROR] Upload failed: {ex.Message}");
+            return BadRequest(new { message = $"เกิดข้อผิดพลาดในการบันทึกไฟล์: {ex.Message}" });
+        }
     }
 
     [HttpGet("{id}")]
