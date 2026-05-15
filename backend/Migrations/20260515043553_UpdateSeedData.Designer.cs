@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using ShippingAPI.Data;
@@ -11,9 +12,11 @@ using ShippingAPI.Data;
 namespace ShippingAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260515043553_UpdateSeedData")]
+    partial class UpdateSeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -233,11 +236,6 @@ namespace ShippingAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ContentHash")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
                     b.Property<string>("ContentType")
                         .IsRequired()
                         .HasColumnType("text");
@@ -254,8 +252,6 @@ namespace ShippingAPI.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ContentHash");
 
                     b.ToTable("UploadedFiles");
                 });
@@ -314,7 +310,7 @@ namespace ShippingAPI.Migrations
                             Email = "",
                             FullName = "Master System Administrator",
                             IsActive = true,
-                            PasswordHash = "$2a$11$jwUjE.WDzlQebIyzkpA/MOTIVsi4I9RKqqFNHkxVRnwUyeLflrBWC",
+                            PasswordHash = "$2a$11$feN6jf1obWosujLEekW/1.EamaTuCWdcq2jsAk0ChZPe/UBxrMDqO",
                             Role = 3,
                             Username = "master_admin",
                             VehiclePlate = ""
