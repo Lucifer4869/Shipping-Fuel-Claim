@@ -79,7 +79,7 @@ export default function ReportsPage() {
           plan: `${s.origin} - ${s.destination}`,
           driverName: s.driverName,
           bankAccount: '-', 
-          distance: (s.endMileage > 0 && s.startMileage > 0) ? (s.endMileage - s.startMileage) : 0,
+          distance: s.routeDistanceKm || (s.endMileage > 0 ? (s.endMileage - s.startMileage) : 0),
           fuelAmount: fuelTotal,
           allowance: allowanceTotal,
           total: fuelTotal + allowanceTotal,
@@ -288,7 +288,7 @@ export default function ReportsPage() {
                       <td className="border border-black text-[10px]">{item.vehiclePlate}</td>
                       <td className="border border-black text-[10px] text-left px-2">{item.plan}</td>
                       <td className="border border-black text-[10px] text-left px-2">{item.driverName}</td>
-                      <td className="border border-black text-[10px] font-bold">{item.distance > 0 ? `${item.distance.toLocaleString()} กม.` : '-'}</td>
+                      <td className="border border-black text-[10px] font-bold">{item.distance > 0 ? `${Number(item.distance).toLocaleString()} กม.` : '-'}</td>
                       <td className="border border-black text-[10px] text-right px-2">{item.fuelAmount > 0 ? item.fuelAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
                       <td className="border border-black text-[10px] text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
                       <td className="border border-black text-[10px] text-right px-2 font-bold bg-summary">
