@@ -101,9 +101,6 @@ export default function ManagerDashboard() {
             <div className="z-10">
               <p className="text-slate-400 text-sm font-medium mb-1">เคลมน้ำมันรออนุมัติ</p>
               <h3 className="text-3xl font-bold text-white">{stats.pendingClaims} <span className="text-sm font-normal text-slate-500">รายการ</span></h3>
-              <div className="mt-3 flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <TrendingUp className="w-3 h-3" />
-              </div>
             </div>
             <div className="p-3 bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform"><Fuel className="w-6 h-6 text-emerald-400" /></div>
           </div>
@@ -114,9 +111,6 @@ export default function ManagerDashboard() {
             <div className="z-10">
               <p className="text-slate-400 text-sm font-medium mb-1">เบิกเงินรออนุมัติ</p>
               <h3 className="text-3xl font-bold text-white">{stats.pendingWithdrawals} <span className="text-sm font-normal text-slate-500">รายการ</span></h3>
-              <div className="mt-3 flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                <TrendingUp className="w-3 h-3" />
-              </div>
             </div>
             <div className="p-3 bg-amber-500/20 rounded-xl group-hover:scale-110 transition-transform"><Banknote className="w-6 h-6 text-amber-400" /></div>
           </div>
@@ -127,9 +121,6 @@ export default function ManagerDashboard() {
             <div className="z-10">
               <p className="text-blue-300 text-sm font-medium mb-1">ยอดเงินรวมที่รออนุมัติ</p>
               <h3 className="text-3xl font-bold text-white">฿{stats.totalAmount.toLocaleString()}</h3>
-              <div className="mt-3 flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                <TrendingUp className="w-3 h-3" />
-              </div>
             </div>
             <div className="p-3 bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform"><FileText className="w-6 h-6 text-blue-400" /></div>
           </div>

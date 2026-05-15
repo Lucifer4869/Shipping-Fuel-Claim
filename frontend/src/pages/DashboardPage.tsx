@@ -143,9 +143,6 @@ function AdminOverview({ user }: { user: any }) {
                 <div className={`w-14 h-14 ${card.iconBg} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                   <card.icon className={`w-7 h-7 ${card.color}`} />
                 </div>
-                <div className="h-10 w-10 bg-slate-800/50 rounded-full border border-slate-700/50 flex items-center justify-center">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                </div>
               </div>
               <p className="text-sm font-medium text-slate-400 mb-1">{card.label}</p>
               <h3 className="text-3xl font-bold text-white tracking-tight">{card.value}</h3>
