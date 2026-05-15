@@ -110,6 +110,21 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate(); // สั่งให้ปรับปรุงโครงสร้างฐานข้อมูล (Migration) โดยอัตโนมัติเมื่อรันโปรแกรม
+
+    // --- เพิ่มเติม: ตรวจสอบและซ่อมแซมค่า Hash สำหรับไฟล์ที่ยังไม่มี ---
+    var filesWithoutHash = db.UploadedFiles.Where(f => string.IsNullOrEmpty(f.ContentHash)).ToList();
+    if (filesWithoutHash.Any())
+    {
+        Console.WriteLine($"[SYSTEM] Found {filesWithoutHash.Count} files without hash. Repairing...");
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        foreach (var file in filesWithoutHash)
+        {
+            var hashBytes = sha256.ComputeHash(file.FileData);
+            file.ContentHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+        }
+        db.SaveChanges();
+        Console.WriteLine("[SYSTEM] Hash repair completed.");
+    }
 }
 
 // --- ส่วนของ Middleware (ลำดับการประมวลผล) ---

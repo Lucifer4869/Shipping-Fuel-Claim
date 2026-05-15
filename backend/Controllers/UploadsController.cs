@@ -51,9 +51,12 @@ public class UploadsController : ControllerBase
 
         if (existingFile != null)
         {
+            Console.WriteLine($"[DEBUG] Duplicate found! Existing File ID: {existingFile.Id}");
             // If exists, return existing URL without saving again
             return Ok(new { url = $"/api/uploads/{existingFile.Id}", isDuplicate = true });
         }
+        
+        Console.WriteLine("[DEBUG] No duplicate found. Saving new file...");
 
         var uploadedFile = new UploadedFile
         {
