@@ -268,7 +268,6 @@ export default function ReportsPage() {
                   <th className="border border-black text-[10px]">รหัสรถ</th>
                   <th className="border border-black text-[10px]">แผน</th>
                   <th className="border border-black text-[10px]">ชื่อ พขร.</th>
-                  <th className="border border-black text-[10px]">เลขที่บัญชี</th>
                   <th className="border border-black text-[10px]">จำนวนน้ำมัน / ลิตร</th>
                   <th className="border border-black text-[10px]">เคลมน้ำมัน</th>
                   <th className="border border-black text-[10px]">ขอเบิกเงิน</th>
@@ -278,7 +277,7 @@ export default function ReportsPage() {
               <tbody>
                 {reportData.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="p-10 text-center text-gray-400 border border-black">ไม่พบข้อมูลในช่วงเวลาที่เลือก</td>
+                    <td colSpan={10} className="p-10 text-center text-gray-400 border border-black">ไม่พบข้อมูลในช่วงเวลาที่เลือก</td>
                   </tr>
                 ) : (
                   reportData.map((item, idx) => (
@@ -289,7 +288,6 @@ export default function ReportsPage() {
                       <td className="border border-black text-[10px]">{item.vehiclePlate}</td>
                       <td className="border border-black text-[10px] text-left px-2">{item.plan}</td>
                       <td className="border border-black text-[10px] text-left px-2">{item.driverName}</td>
-                      <td className="border border-black text-[10px]">{item.bankAccount}</td>
                       <td className="border border-black text-[10px]">{item.fuelLitre}</td>
                       <td className="border border-black text-[10px] text-right px-2">{item.fuelAmount > 0 ? item.fuelAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
                       <td className="border border-black text-[10px] text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
