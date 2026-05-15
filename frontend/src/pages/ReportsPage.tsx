@@ -81,9 +81,7 @@ export default function ReportsPage() {
           bankAccount: '-', 
           fuelLitre: '-', 
           fuelAmount: fuelTotal,
-          fuelReason: sClaims.map((c: any) => c.reason).filter(Boolean).join(', ') || '-',
           allowance: allowanceTotal,
-          allowanceReason: sWithdrawals.map((w: any) => w.reason).filter(Boolean).join(', ') || '-',
           total: fuelTotal + allowanceTotal,
           withdrawalStatus: getStatusText(sWithdrawals),
           claimStatus: getStatusText(sClaims)
@@ -272,12 +270,10 @@ export default function ReportsPage() {
                   <th className="border border-black text-[10px]">ชื่อ พขร.</th>
                   <th className="border border-black text-[10px]">เลขที่บัญชี</th>
                   <th className="border border-black text-[10px]">จำนวนน้ำมัน / ลิตร</th>
-                   <th className="border border-black text-[10px]">เคลมน้ำมัน</th>
-                   <th className="border border-black text-[10px]">เหตุผลเคลม</th>
-                   <th className="border border-black text-[10px]">ขอเบิกเงิน</th>
-                   <th className="border border-black text-[10px]">เหตุผลเบิก</th>
-                   <th className="border border-black text-[10px] bg-summary">รวมทั้งสิ้น</th>
-                 </tr>
+                  <th className="border border-black text-[10px]">เคลมน้ำมัน</th>
+                  <th className="border border-black text-[10px]">ขอเบิกเงิน</th>
+                  <th className="border border-black text-[10px] bg-summary">รวมทั้งสิ้น</th>
+                </tr>
               </thead>
               <tbody>
                 {reportData.length === 0 ? (
@@ -295,11 +291,9 @@ export default function ReportsPage() {
                       <td className="border border-black text-[10px] text-left px-2">{item.driverName}</td>
                       <td className="border border-black text-[10px]">{item.bankAccount}</td>
                       <td className="border border-black text-[10px]">{item.fuelLitre}</td>
-                       <td className="border border-black text-[10px] text-right px-2">{item.fuelAmount > 0 ? item.fuelAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-                       <td className="border border-black text-[9px] text-left px-1 max-w-[80px] truncate">{item.fuelReason}</td>
-                       <td className="border border-black text-[10px] text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-                       <td className="border border-black text-[9px] text-left px-1 max-w-[80px] truncate">{item.allowanceReason}</td>
-                       <td className="border border-black text-[10px] text-right px-2 font-bold bg-summary">
+                      <td className="border border-black text-[10px] text-right px-2">{item.fuelAmount > 0 ? item.fuelAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className="border border-black text-[10px] text-right px-2">{item.allowance > 0 ? item.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className="border border-black text-[10px] text-right px-2 font-bold bg-summary">
                         {item.total > 0 ? item.total.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}
                       </td>
                     </tr>
@@ -309,9 +303,7 @@ export default function ReportsPage() {
                   <tr className="bg-gray-100 font-bold">
                     <td colSpan={8} className="border border-black text-right px-4 text-[11px]">รวมทั้งสิ้น</td>
                     <td className="border border-black text-right px-2 text-[10px]">{totals.fuel.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="border border-black"></td>
                     <td className="border border-black text-right px-2 text-[10px]">{totals.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className="border border-black"></td>
                     <td className="border border-black text-right px-2 text-[11px] bg-summary">{totals.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                   </tr>
                 )}
@@ -324,12 +316,14 @@ export default function ReportsPage() {
               <table className="w-full mb-8">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="border border-black text-[9px] py-1 w-[5%]">ลำดับ</th>
-                    <th className="border border-black text-[9px] py-1 w-[20%]">เลขที่แผน</th>
-                    <th className="border border-black text-[9px] py-1 w-[25%]">ชื่อคนขับ</th>
-                    <th className="border border-black text-[9px] py-1 w-[20%]">เหตุผล</th>
-                    <th className="border border-black text-[9px] py-1 w-[15%]">จำนวนเงิน</th>
-                    <th className="border border-black text-[9px] py-1 w-[15%]">สถานะ</th>
+                    <th className="border border-black text-[8px] py-1 w-[5%]">ลำดับ</th>
+                    <th className="border border-black text-[8px] py-1 w-[13%]">เลขที่แผน</th>
+                    <th className="border border-black text-[8px] py-1 w-[15%]">ชื่อคนขับ</th>
+                    <th className="border border-black text-[8px] py-1 w-[15%]">เหตุผล</th>
+                    <th className="border border-black text-[8px] py-1 w-[12%]">Manager</th>
+                    <th className="border border-black text-[8px] py-1 w-[12%]">การเงิน</th>
+                    <th className="border border-black text-[8px] py-1 w-[14%]">จำนวนเงิน</th>
+                    <th className="border border-black text-[8px] py-1 w-[14%]">สถานะ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -339,19 +333,21 @@ export default function ReportsPage() {
                                        item.status === 'ApprovedByManager' ? 'รอ Finance จ่ายเงิน' : 'รอ Manager อนุมัติ';
                     return (
                     <tr key={`w-${idx}`}>
-                      <td className="border border-black text-[9px] py-1">{idx + 1}</td>
-                      <td className="border border-black text-[9px] py-1 font-mono">{item.withdrawalNumber || item.tripNumber}</td>
-                      <td className="border border-black text-[9px] py-1">{item.driverName}</td>
-                      <td className="border border-black text-[9px] py-1 text-left px-2">{item.reason || 'เบิกเงิน'}</td>
-                      <td className="border border-black text-[9px] py-1 text-right px-2">{item.amount > 0 ? item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-                      <td className={`border border-black text-[9px] py-1 font-bold ${
+                      <td className="border border-black text-[8px] py-1">{idx + 1}</td>
+                      <td className="border border-black text-[8px] py-1 font-mono">{item.withdrawalNumber || item.tripNumber}</td>
+                      <td className="border border-black text-[8px] py-1">{item.driverName}</td>
+                      <td className="border border-black text-[8px] py-1 text-left px-1">{item.reason || 'เบิกเงิน'}</td>
+                      <td className="border border-black text-[8px] py-1 text-emerald-700 font-medium">{item.managerName || '-'}</td>
+                      <td className="border border-black text-[8px] py-1 text-blue-700 font-medium">{item.financeName || '-'}</td>
+                      <td className="border border-black text-[8px] py-1 text-right px-1 font-bold">{item.amount > 0 ? item.amount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className={`border border-black text-[8px] py-1 font-bold ${
                         statusText === 'จ่ายเงินแล้ว' ? 'text-emerald-700' : 
                         statusText === 'ถูกปฏิเสธ' ? 'text-red-600' : 'text-amber-600'
                       }`}>
                         {statusText}
                       </td>
                     </tr>
-                  )}) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเบิกเงิน</td></tr>}
+                  )}) : <tr><td colSpan={8} className="border border-black text-center py-4 text-[8px] text-gray-400">ไม่มีข้อมูลการเบิกเงิน</td></tr>}
                 </tbody>
               </table>
 
@@ -359,12 +355,14 @@ export default function ReportsPage() {
               <table className="w-full mb-8">
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="border border-black text-[9px] py-1 w-[5%]">ลำดับ</th>
-                    <th className="border border-black text-[9px] py-1 w-[20%]">เลขที่แผน</th>
-                    <th className="border border-black text-[9px] py-1 w-[25%]">ชื่อคนขับ</th>
-                    <th className="border border-black text-[9px] py-1 w-[20%]">เหตุผล</th>
-                    <th className="border border-black text-[9px] py-1 w-[15%]">จำนวนเงิน</th>
-                    <th className="border border-black text-[9px] py-1 w-[15%]">สถานะ</th>
+                    <th className="border border-black text-[8px] py-1 w-[5%]">ลำดับ</th>
+                    <th className="border border-black text-[8px] py-1 w-[13%]">เลขที่แผน</th>
+                    <th className="border border-black text-[8px] py-1 w-[15%]">ชื่อคนขับ</th>
+                    <th className="border border-black text-[8px] py-1 w-[15%]">เหตุผล</th>
+                    <th className="border border-black text-[8px] py-1 w-[12%]">Manager</th>
+                    <th className="border border-black text-[8px] py-1 w-[12%]">การเงิน</th>
+                    <th className="border border-black text-[8px] py-1 w-[14%]">จำนวนเงิน</th>
+                    <th className="border border-black text-[8px] py-1 w-[14%]">สถานะ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -374,19 +372,21 @@ export default function ReportsPage() {
                                        item.status === 'ApprovedByManager' ? 'รอ Finance จ่ายเงิน' : 'รอ Manager อนุมัติ';
                     return (
                     <tr key={`c-${idx}`}>
-                      <td className="border border-black text-[9px] py-1">{idx + 1}</td>
-                      <td className="border border-black text-[9px] py-1 font-mono">{item.claimNumber || item.tripNumber}</td>
-                      <td className="border border-black text-[9px] py-1">{item.driverName}</td>
-                      <td className="border border-black text-[9px] py-1 text-left px-2">{item.reason || 'เคลมน้ำมัน'}</td>
-                      <td className="border border-black text-[9px] py-1 text-right px-2">{item.claimAmount > 0 ? item.claimAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
-                      <td className={`border border-black text-[9px] py-1 font-bold ${
+                      <td className="border border-black text-[8px] py-1">{idx + 1}</td>
+                      <td className="border border-black text-[8px] py-1 font-mono">{item.claimNumber || item.tripNumber}</td>
+                      <td className="border border-black text-[8px] py-1">{item.driverName}</td>
+                      <td className="border border-black text-[8px] py-1 text-left px-1">{item.reason || 'เคลมน้ำมัน'}</td>
+                      <td className="border border-black text-[8px] py-1 text-emerald-700 font-medium">{item.managerName || '-'}</td>
+                      <td className="border border-black text-[8px] py-1 text-blue-700 font-medium">{item.financeName || '-'}</td>
+                      <td className="border border-black text-[8px] py-1 text-right px-1 font-bold">{item.claimAmount > 0 ? item.claimAmount.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}</td>
+                      <td className={`border border-black text-[8px] py-1 font-bold ${
                         statusText === 'จ่ายเงินแล้ว' ? 'text-emerald-700' : 
                         statusText === 'ถูกปฏิเสธ' ? 'text-red-600' : 'text-amber-600'
                       }`}>
                         {statusText}
                       </td>
                     </tr>
-                  )}) : <tr><td colSpan={6} className="border border-black text-center py-4 text-[9px] text-gray-400">ไม่มีข้อมูลการเคลมน้ำมัน</td></tr>}
+                  )}) : <tr><td colSpan={8} className="border border-black text-center py-4 text-[8px] text-gray-400">ไม่มีข้อมูลการเคลมน้ำมัน</td></tr>}
                 </tbody>
               </table>
             </div>
