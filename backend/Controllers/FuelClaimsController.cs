@@ -100,6 +100,16 @@ public class FuelClaimsController : ControllerBase
         if (request.MileageIn <= request.MileageOut)
             return BadRequest(new { message = "ระยะทางขากลับต้องมากกว่าขาไป" });
 
+        // Check for duplicate claim (Same shipment, same amount, same receipt)
+        var isDuplicate = await _db.FuelClaims.AnyAsync(f => 
+            f.ShipmentId == request.ShipmentId && 
+            f.ClaimAmount == request.ClaimAmount && 
+            f.ReceiptUrl == request.ReceiptUrl &&
+            f.Status != FuelClaimStatus.Rejected); // ยกเว้นรายการที่ถูกปฏิเสธไปแล้ว สามารถส่งใหม่ได้
+
+        if (isDuplicate)
+            return BadRequest(new { message = "รายการเคลมนี้ถูกส่งเข้าระบบแล้ว (ตรวจพบข้อมูลซ้ำ)" });
+
         // Generate Claim Number: FLC-YYYYMMDD-XXXX
         var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
         var countToday = await _db.FuelClaims.CountAsync(f => f.CreatedAt.Date == DateTime.UtcNow.Date);

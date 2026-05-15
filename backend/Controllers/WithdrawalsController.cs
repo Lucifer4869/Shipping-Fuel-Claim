@@ -96,6 +96,16 @@ public class WithdrawalsController : ControllerBase
         if (request.Amount <= 0)
             return BadRequest(new { message = "จำนวนเงินที่ขอเบิกต้องมากกว่า 0" });
 
+        // Check for duplicate withdrawal (Same shipment, same amount, same reason)
+        var isDuplicate = await _db.Withdrawals.AnyAsync(w => 
+            w.ShipmentId == request.ShipmentId && 
+            w.Amount == request.Amount && 
+            w.Reason == request.Reason &&
+            w.Status != WithdrawalStatus.Rejected); // ยกเว้นรายการที่ถูกปฏิเสธไปแล้ว
+
+        if (isDuplicate)
+            return BadRequest(new { message = "รายการขอเบิกเงินนี้ถูกส่งเข้าระบบแล้ว (ตรวจพบข้อมูลซ้ำ)" });
+
         // Generate Withdrawal Number: WTH-YYYYMMDD-XXXX
         var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
         var countToday = await _db.Withdrawals.CountAsync(w => w.CreatedAt.Date == DateTime.UtcNow.Date);
@@ -160,7 +170,7 @@ public class WithdrawalsController : ControllerBase
     }
 
     /// <summary>Finance อนุมัติขั้นสุดท้าย</summary>
-    [HttpPatch("{id}/finance-approve")]
+    [HttpPatch("{id}/finance-approve")]//แก้ไขลำดับการอนุมัติโดยการเงิน
     [Authorize(Roles = "Finance,Admin")]
     public async Task<IActionResult> FinanceApprove(int id, [FromBody] ApproveWithdrawalRequest request)
     {
