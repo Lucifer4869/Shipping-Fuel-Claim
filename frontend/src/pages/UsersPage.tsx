@@ -202,7 +202,7 @@ export default function UsersPage() {
                             const createdDate = new Date(u.createdAt);
                             const now = new Date();
                             const diffInHours = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60);
-                            return diffInHours < 24 ? (
+                            return diffInHours < 1 ? (
                               <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-[9px] font-black text-white animate-pulse">NEW</span>
                             ) : null;
                           })()}
