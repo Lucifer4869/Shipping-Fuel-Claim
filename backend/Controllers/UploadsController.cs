@@ -29,20 +29,37 @@ public class UploadsController : ControllerBase
             return BadRequest(new { message = "ขนาดไฟล์ต้องไม่เกิน 5MB" });
 
         // Validate File Extension
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" }; //กำหนดนามสกุลไฟล์ที่อนุญาต
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
             return BadRequest(new { message = "อนุญาตเฉพาะไฟล์รูปภาพ (jpg, png) หรือ PDF เท่านั้น" });
 
         using var memoryStream = new MemoryStream();
         await file.CopyToAsync(memoryStream);
+        var fileData = memoryStream.ToArray();
+
+        // Calculate SHA256 Hash to check for duplicates
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var hashBytes = sha256.ComputeHash(fileData);
+        var contentHash = BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();
+
+        // Check if file already exists
+        var existingFile = await _db.UploadedFiles
+            .FirstOrDefaultAsync(f => f.ContentHash == contentHash);
+
+        if (existingFile != null)
+        {
+            // If exists, return existing URL without saving again
+            return Ok(new { url = $"/api/uploads/{existingFile.Id}", isDuplicate = true });
+        }
 
         var uploadedFile = new UploadedFile
         {
             Id = Guid.NewGuid(),
             FileName = file.FileName,
             ContentType = file.ContentType,
-            FileData = memoryStream.ToArray()
+            FileData = fileData,
+            ContentHash = contentHash
         };
 
         _db.UploadedFiles.Add(uploadedFile);
@@ -50,7 +67,7 @@ public class UploadsController : ControllerBase
 
         // Return URL to access this file via GetFile
         var fileUrl = $"/api/uploads/{uploadedFile.Id}";
-        return Ok(new { url = fileUrl });
+        return Ok(new { url = fileUrl, isDuplicate = false });
     }
 
     [HttpGet("{id}")]
