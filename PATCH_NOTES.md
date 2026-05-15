@@ -69,22 +69,22 @@
 ---
 
 ## ⏱️ Changelog Timeline (15 May 2026)
-* **11:28 น.** - **[Security] Seed Data Cleanup:** ลบข้อมูล User ทดสอบ (Driver, Manager, Finance) ออกจาก `AppDbContext.cs` เพื่อความปลอดภัย
-* **11:29 น.** - **[Security] Admin Credential Update:** เปลี่ยน Username และ Password สำหรับ Admin เป็นค่าที่ปลอดภัยยิ่งขึ้น (`master_admin`)
-* **11:30 น.** - **[System] Database Reset & Documentation:** รีเซ็ต Database ใหม่และอัปเดตข้อมูลบัญชีใน `README.md` และ `PATCH_NOTES.md`
+* **[Security] Seed Data Cleanup:** ลบข้อมูล User ทดสอบ (Driver, Manager, Finance) ออกจาก `AppDbContext.cs` เพื่อความปลอดภัย
+* **[Security] Admin Credential Update:** เปลี่ยน Username และ Password สำหรับ Admin เป็นค่าที่ปลอดภัยยิ่งขึ้น (`master_admin`)
+* **[System] Database Reset & Documentation:** รีเซ็ต Database ใหม่และอัปเดตข้อมูลบัญชีใน `README.md` และ `PATCH_NOTES.md`
 
 ---
 
 ## ⏱️ Changelog Timeline (14 May 2026 - Detailed)
 
-* **19:21 น.** - **[Backend] Update Model & DTOs:** แก้ไข `FuelClaim.cs` เพิ่มฟิลด์ `Reason` และอัปเดต `Dtos.cs` สำหรับการเคลมน้ำมัน
-* **19:23 น.** - **[Backend] Logic Update:** แก้ไข `FuelClaimsController.cs` เพื่อรองรับการรับและส่งข้อมูล "เหตุผล" (Reason)
-* **19:25 น.** - **[Frontend] Fuel Claims UI:** เพิ่มช่องกรอกเหตุผลใน `FuelClaimsPage.tsx` และอัปเดตหน้าต่างแสดงรายละเอียด `RequestDetailModal.tsx`
-* **19:28 น.** - **[Audit Trail] Traceability Hardening:** แก้ไข `AuditLogsController.cs` และ `AuditLogsPage.tsx` ให้แสดงรหัสอ้างอิง `FLC/WTH` แทนเลข ID
-* **19:32 น.** - **[Security] Strict Approval Enforcement:** บังคับ Logic การอนุมัติ (Manager -> Finance) ทั้งฝั่ง Backend API และการซ่อนปุ่มในหน้า Frontend
-* **19:40 น.** - **[Reporting] Transactional Detail Update:** รื้อโครงสร้าง `ReportsPage.tsx` ให้แสดงข้อมูลแยกราย Transaction พร้อมเหตุผลที่ถูกต้อง
-* **19:43 น.** - **[Validation] Input & File Guard:** ติดตั้งระบบตรวจสอบข้อมูล (Amount, Mileage, File Size/Type) และล็อกชนิดไฟล์ (JPG, PNG, PDF) ก่อนส่งเข้าเซิร์ฟเวอร์
-* **19:46 น.** - **[System] Infrastructure:** รีสตาร์ต Docker Containers ทั้งหมดเพื่อ Refresh โค้ดล่าสุด
-* **19:49 น.** - **[Design] UI Polishing:** ล็อกขนาดคอลัมน์ (Fixed Width) ในหน้ารายงานให้สมดุลและสวยงาม
-* **19:52 น.** - **[Documentation] Final Delivery:** จัดทำเอกสาร PATCH_NOTES และสรุป Timeline ฉบับละเอียดลิสต์นี้ลงในไฟล์โครงการ
+* **[Backend] Update Model & DTOs:** แก้ไข `FuelClaim.cs` เพิ่มฟิลด์ `Reason` และอัปเดต `Dtos.cs` สำหรับการเคลมน้ำมัน
+* **[Backend] Logic Update:** แก้ไข `FuelClaimsController.cs` เพื่อรองรับการรับและส่งข้อมูล "เหตุผล" (Reason)
+* **[Frontend] Fuel Claims UI:** เพิ่มช่องกรอกเหตุผลใน `FuelClaimsPage.tsx` และอัปเดตหน้าต่างแสดงรายละเอียด `RequestDetailModal.tsx`
+* **[Audit Trail] Traceability Hardening:** แก้ไข `AuditLogsController.cs` และ `AuditLogsPage.tsx` ให้แสดงรหัสอ้างอิง `FLC/WTH` แทนเลข ID
+* **[Security] Strict Approval Enforcement:** บังคับ Logic การอนุมัติ (Manager -> Finance) ทั้งฝั่ง Backend API และการซ่อนปุ่มในหน้า Frontend
+* **[Reporting] Transactional Detail Update:** รื้อโครงสร้าง `ReportsPage.tsx` ให้แสดงข้อมูลแยกราย Transaction พร้อมเหตุผลที่ถูกต้อง
+* **[Validation] Input & File Guard:** ติดตั้งระบบตรวจสอบข้อมูล (Amount, Mileage, File Size/Type) และล็อกชนิดไฟล์ (JPG, PNG, PDF) ก่อนส่งเข้าเซิร์ฟเวอร์
+* **[System] Infrastructure:** รีสตาร์ต Docker Containers ทั้งหมดเพื่อ Refresh โค้ดล่าสุด
+* **[Design] UI Polishing:** ล็อกขนาดคอลัมน์ (Fixed Width) ในหน้ารายงานให้สมดุลและสวยงาม
+* **[Documentation] Final Delivery:** จัดทำเอกสาร PATCH_NOTES และสรุป Timeline ฉบับละเอียดลิสต์นี้ลงในไฟล์โครงการ
 
