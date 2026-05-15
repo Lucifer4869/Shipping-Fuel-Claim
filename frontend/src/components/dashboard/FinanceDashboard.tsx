@@ -103,9 +103,8 @@ export default function FinanceDashboard() {
             <div className="z-10">
               <p className="text-blue-300 text-sm font-medium mb-1">ยอดรวมเงินที่จ่ายแล้ว (Total Paid)</p>
               <h3 className="text-4xl font-bold text-white">฿{stats.totalPaid.toLocaleString()}</h3>
-              <div className="mt-4 flex items-center gap-1.5 py-1 px-3 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold w-fit border border-blue-500/20">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>+18.4% จากเดือนก่อน</span>
+              <div className="mt-4 flex items-center justify-center w-7 h-7 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                <TrendingUp className="w-4 h-4" />
               </div>
             </div>
             <div className="p-4 bg-blue-500/20 rounded-2xl group-hover:scale-110 transition-transform"><Banknote className="w-8 h-8 text-blue-400" /></div>
@@ -120,9 +119,8 @@ export default function FinanceDashboard() {
                 <h3 className="text-4xl font-bold text-white">฿{stats.awaitingPaymentAmount.toLocaleString()}</h3>
                 <span className="text-sm font-medium text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md">{stats.awaitingPaymentCount} รายการ</span>
               </div>
-              <div className="mt-4 flex items-center gap-1.5 py-1 px-3 rounded-full bg-amber-500/10 text-amber-400 text-xs font-bold w-fit border border-amber-500/20">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>+5.2% ค้างจ่ายเพิ่มขึ้น</span>
+              <div className="mt-4 flex items-center justify-center w-7 h-7 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <TrendingUp className="w-4 h-4" />
               </div>
             </div>
             <div className="p-4 bg-amber-500/20 rounded-2xl group-hover:scale-110 transition-transform"><Clock className="w-8 h-8 text-amber-400" /></div>
