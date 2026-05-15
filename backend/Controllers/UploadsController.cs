@@ -29,10 +29,15 @@ public class UploadsController : ControllerBase
             return BadRequest(new { message = "ขนาดไฟล์ต้องไม่เกิน 5MB" });
 
         // Validate File Extension
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" }; //กำหนดนามสกุลไฟล์ที่อนุญาต
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        var fileName = file.FileName ?? "unknown";
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".pdf" };
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        
         if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
+        {
+            Console.WriteLine($"[DEBUG] Invalid extension: {extension} for file: {fileName}");
             return BadRequest(new { message = "อนุญาตเฉพาะไฟล์รูปภาพ (jpg, png) หรือ PDF เท่านั้น" });
+        }
 
         using var memoryStream = new MemoryStream();
         await file.CopyToAsync(memoryStream);
