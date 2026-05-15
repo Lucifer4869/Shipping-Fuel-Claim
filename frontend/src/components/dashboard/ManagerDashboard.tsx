@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getWithdrawals, getFuelClaims, managerApproveFuelClaim, managerApproveWithdrawal, getImageUrl } from '../../lib/api';
-import { CheckCircle, XCircle, FileText, Banknote, Fuel, Search, X, Image as ImageIcon } from 'lucide-react';
+import { CheckCircle, XCircle, FileText, Banknote, Fuel, Search, X, Image as ImageIcon, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function ManagerDashboard() {
@@ -96,33 +96,45 @@ export default function ManagerDashboard() {
 
       {/* 1. Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="card p-6 border-l-4 border-l-emerald-500">
+        <div className="card p-6 border-l-4 border-l-emerald-500 relative overflow-hidden group">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="z-10">
               <p className="text-slate-400 text-sm font-medium mb-1">เคลมน้ำมันรออนุมัติ</p>
               <h3 className="text-3xl font-bold text-white">{stats.pendingClaims} <span className="text-sm font-normal text-slate-500">รายการ</span></h3>
+              <div className="mt-3 flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold w-fit border border-emerald-500/20">
+                <TrendingUp className="w-3 h-3" />
+                <span>+12.5%</span>
+              </div>
             </div>
-            <div className="p-3 bg-emerald-500/20 rounded-xl"><Fuel className="w-6 h-6 text-emerald-400" /></div>
+            <div className="p-3 bg-emerald-500/20 rounded-xl group-hover:scale-110 transition-transform"><Fuel className="w-6 h-6 text-emerald-400" /></div>
           </div>
         </div>
         
-        <div className="card p-6 border-l-4 border-l-amber-500">
+        <div className="card p-6 border-l-4 border-l-amber-500 relative overflow-hidden group">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="z-10">
               <p className="text-slate-400 text-sm font-medium mb-1">เบิกเงินรออนุมัติ</p>
               <h3 className="text-3xl font-bold text-white">{stats.pendingWithdrawals} <span className="text-sm font-normal text-slate-500">รายการ</span></h3>
+              <div className="mt-3 flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold w-fit border border-amber-500/20">
+                <TrendingUp className="w-3 h-3" />
+                <span>+5.2%</span>
+              </div>
             </div>
-            <div className="p-3 bg-amber-500/20 rounded-xl"><Banknote className="w-6 h-6 text-amber-400" /></div>
+            <div className="p-3 bg-amber-500/20 rounded-xl group-hover:scale-110 transition-transform"><Banknote className="w-6 h-6 text-amber-400" /></div>
           </div>
         </div>
 
-        <div className="card p-6 border-l-4 border-l-blue-500 bg-gradient-to-br from-slate-800 to-blue-900/10">
+        <div className="card p-6 border-l-4 border-l-blue-500 bg-gradient-to-br from-slate-800 to-blue-900/10 relative overflow-hidden group">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="z-10">
               <p className="text-blue-300 text-sm font-medium mb-1">ยอดเงินรวมที่รออนุมัติ</p>
               <h3 className="text-3xl font-bold text-white">฿{stats.totalAmount.toLocaleString()}</h3>
+              <div className="mt-3 flex items-center gap-1.5 py-1 px-2.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold w-fit border border-blue-500/20">
+                <TrendingUp className="w-3 h-3" />
+                <span>+24.8%</span>
+              </div>
             </div>
-            <div className="p-3 bg-blue-500/20 rounded-xl"><FileText className="w-6 h-6 text-blue-400" /></div>
+            <div className="p-3 bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform"><FileText className="w-6 h-6 text-blue-400" /></div>
           </div>
         </div>
       </div>

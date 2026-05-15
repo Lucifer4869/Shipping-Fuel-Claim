@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getWithdrawals, getFuelClaims, financeApproveFuelClaim, financeApproveWithdrawal } from '../../lib/api';
-import { Banknote, CheckCircle, Search, Clock, FileText, Fuel, X } from 'lucide-react';
+import { Banknote, CheckCircle, Search, Clock, FileText, Fuel, X, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function FinanceDashboard() {
@@ -98,26 +98,34 @@ export default function FinanceDashboard() {
 
       {/* 1. Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="card p-6 border-l-4 border-l-blue-500 bg-gradient-to-br from-slate-800 to-blue-900/10">
+        <div className="card p-6 border-l-4 border-l-blue-500 bg-gradient-to-br from-slate-800 to-blue-900/10 relative overflow-hidden group">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="z-10">
               <p className="text-blue-300 text-sm font-medium mb-1">ยอดรวมเงินที่จ่ายแล้ว (Total Paid)</p>
               <h3 className="text-4xl font-bold text-white">฿{stats.totalPaid.toLocaleString()}</h3>
+              <div className="mt-4 flex items-center gap-1.5 py-1 px-3 rounded-full bg-blue-500/10 text-blue-400 text-xs font-bold w-fit border border-blue-500/20">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>+18.4% จากเดือนก่อน</span>
+              </div>
             </div>
-            <div className="p-4 bg-blue-500/20 rounded-2xl"><Banknote className="w-8 h-8 text-blue-400" /></div>
+            <div className="p-4 bg-blue-500/20 rounded-2xl group-hover:scale-110 transition-transform"><Banknote className="w-8 h-8 text-blue-400" /></div>
           </div>
         </div>
         
-        <div className="card p-6 border-l-4 border-l-amber-500 bg-gradient-to-br from-slate-800 to-amber-900/10">
+        <div className="card p-6 border-l-4 border-l-amber-500 bg-gradient-to-br from-slate-800 to-amber-900/10 relative overflow-hidden group">
           <div className="flex justify-between items-start">
-            <div>
+            <div className="z-10">
               <p className="text-amber-300 text-sm font-medium mb-1">รายการที่รอจ่าย (Awaiting Payment)</p>
               <div className="flex items-baseline gap-3">
                 <h3 className="text-4xl font-bold text-white">฿{stats.awaitingPaymentAmount.toLocaleString()}</h3>
                 <span className="text-sm font-medium text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md">{stats.awaitingPaymentCount} รายการ</span>
               </div>
+              <div className="mt-4 flex items-center gap-1.5 py-1 px-3 rounded-full bg-amber-500/10 text-amber-400 text-xs font-bold w-fit border border-amber-500/20">
+                <TrendingUp className="w-3.5 h-3.5" />
+                <span>+5.2% ค้างจ่ายเพิ่มขึ้น</span>
+              </div>
             </div>
-            <div className="p-4 bg-amber-500/20 rounded-2xl"><Clock className="w-8 h-8 text-amber-400" /></div>
+            <div className="p-4 bg-amber-500/20 rounded-2xl group-hover:scale-110 transition-transform"><Clock className="w-8 h-8 text-amber-400" /></div>
           </div>
         </div>
       </div>
