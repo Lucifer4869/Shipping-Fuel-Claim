@@ -299,7 +299,7 @@ export default function ReportsPage() {
                 )}
                 {reportData.length > 0 && (
                   <tr className="bg-gray-100 font-bold">
-                    <td colSpan={8} className="border border-black text-right px-4 text-[11px]">รวมทั้งสิ้น</td>
+                    <td colSpan={7} className="border border-black text-right px-4 text-[11px]">รวมทั้งสิ้น</td>
                     <td className="border border-black text-right px-2 text-[10px]">{totals.fuel.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                     <td className="border border-black text-right px-2 text-[10px]">{totals.allowance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                     <td className="border border-black text-right px-2 text-[11px] bg-summary">{totals.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
