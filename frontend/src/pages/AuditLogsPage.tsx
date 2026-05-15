@@ -100,7 +100,7 @@ export default function AuditLogsPage() {
           <table className="w-full">
             <thead className="bg-dark-900/50 border-b border-slate-700">
               <tr>
-                {['ตาราง', 'Claim ID / Record ID', 'การดำเนินการ', 'ผู้ดำเนินการ', 'ก่อนเปลี่ยน', 'หลังเปลี่ยน', 'วันที่/เวลา'].map(h => (
+                {['ตาราง', ' ID', 'การดำเนินการ', 'ผู้ดำเนินการ', 'ก่อนเปลี่ยน', 'หลังเปลี่ยน', 'วันที่/เวลา'].map(h => (
                   <th key={h} className="table-header text-left">{h}</th>
                 ))}
               </tr>
