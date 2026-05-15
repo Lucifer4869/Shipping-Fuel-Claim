@@ -15,6 +15,8 @@
    - ห้ามเลขไมล์ขากลับน้อยกว่าเลขไมล์ขาไป
    - จำกัดไฟล์ใบเสร็จไม่เกิน 5MB และอนุญาตเฉพาะไฟล์นามสกุล **JPG, PNG และ PDF** เท่านั้น
 6. **Security Hardening (Seeded Users):** ลบข้อมูล User ทดสอบออกจาก Code (`AppDbContext.cs`) ทั้งหมด เพื่อป้องกันความเสี่ยงในการถูกเข้าถึงโดยไม่ได้รับอนุญาต และสร้างรหัสผ่าน Admin เริ่มต้นที่มีความปลอดภัยสูงขึ้นแทน
+7. **Premium UI Enhancement (Trend Badges):** เพิ่มไอคอนทิศทางการเติบโต (Trending Up) ในการ์ดสถิติหน้า Dashboard เพื่อความสวยงามระดับพรีเมียม
+8. **Dynamic NEW Badge (User Management):** เพิ่มป้ายกำกับ "NEW" สีเขียวอัตโนมัติสำหรับผู้ใช้ที่เพิ่งสร้างใหม่ภายใน 1 ชั่วโมง เพื่อให้ Admin สังเกตเห็นได้ง่าย
 
 ---
 
@@ -71,6 +73,8 @@
 ## ⏱️ Changelog Timeline (15 May 2026)
 * **[Security] Seed Data Cleanup:** ลบข้อมูล User ทดสอบ (Driver, Manager, Finance) ออกจาก `AppDbContext.cs` เพื่อความปลอดภัย
 * **[Security] Admin Credential Update:** เปลี่ยน Username และ Password สำหรับ Admin เป็นค่าที่ปลอดภัยยิ่งขึ้น (`master_admin`)
+* **[Design] Trend Badges:** เพิ่มไอคอนทิศทางการเติบโตใน Dashboard เพื่อความพรีเมียม
+* **[Users] Dynamic NEW Badge:** เพิ่มระบบป้าย NEW สำหรับ User ใหม่ (อายุ 1 ชม.)
 * **[System] Database Reset & Documentation:** รีเซ็ต Database ใหม่และอัปเดตข้อมูลบัญชีใน `README.md` และ `PATCH_NOTES.md`
 
 ---
